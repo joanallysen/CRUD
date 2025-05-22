@@ -1,6 +1,10 @@
 @import './base.css';
+@import "tailwindcss";
 
-body {
+:root{
+  
+}
+/* body {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,4 +172,4 @@ code {
   .actions {
     display: none;
   }
-}
+} */

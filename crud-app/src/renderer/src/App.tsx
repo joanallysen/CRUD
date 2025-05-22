@@ -1,35 +1,51 @@
-import Versions from './components/Versions'
+import {useState} from 'react'
 import electronLogo from './assets/electron.svg'
 
+import {User} from '../../types/user';
+import {Admin} from '../../types/admin';
+import {Item} from '../../types/item';
+
+import UserPage from './pages/UserPage';
+import AdminPage from './pages/AdminPage';
+import LoginPage from './pages/LoginPage';
+
+type PageName = 'userPage' | 'adminPage' | 'loginPage';
+
 function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+
+  // const addItem = (
+  //   name: string,
+  //   description: string,
+  //   price: number,
+  //   img: { mime: string, data: string },
+  //   category: string,
+  //   available: boolean,
+  //   popularity: number
+  // ): Promise<void> =>
+  //   window.electron.ipcRenderer.invoke(
+  //     'add-item',
+  //     name,
+  //     description,
+  //     price,
+  //     img,
+  //     category,
+  //     available,
+  //     popularity
+  //   );
+
+const [page, setPage] = useState<PageName>('loginPage');
+  function handleChangePage(pageName: PageName){
+    console.log('Page changed to ', pageName);
+    setPage(pageName);
+  }
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
-  )
+    <div className='justify-center text-center flex-col'>
+      {page == 'loginPage' && <LoginPage onChangePage={handleChangePage}/>}
+      {page == 'adminPage' && <AdminPage onChangePage={handleChangePage} />}
+      {page == 'userPage' && <UserPage onChangePage={handleChangePage} />}
+    </div>
+  );
 }
 
 export default App
