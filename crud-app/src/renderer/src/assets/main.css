@@ -4,6 +4,32 @@
 :root{
   
 }
+
+html, body{
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+body{
+  min-height: 100vh;
+  background: linear-gradient(135deg, #142D4D 0%, #3C0A06 100%);
+  color: white;
+}
+
+#root{
+  height: 100%;
+}
+
+@layer components{
+  .input {
+    @apply w-full px-4 py-3 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors;
+  }
+
+  .button {
+    @apply w-50 rounded-full px-6 py-3 font-medium text-gray-800 transition-all duration-150 ease-in-out cursor-pointer hover:w-70;
+  }
+}
 /* body {
   display: flex;
   align-items: center;

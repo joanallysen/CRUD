@@ -1,4 +1,6 @@
-import {useState} from "react"
+import {useState, useRef} from "react"
+import uploadPicture from '../assets/uploadPicture.svg'; 
+
 
 type PageName = 'userPage' | 'adminPage' | 'loginPage';
 
@@ -7,6 +9,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
     const [imgData, setImgData] = useState<{mime: string; data: string}>({mime: '', data: ''});
     // Buffer is undefined on frontend
     const [imgBuffer, setImgBuffer] = useState<string>('');
+    const categoryRef = useRef<HTMLInputElement>(null);
 
     
     const chooseImage = async () =>{
@@ -19,13 +22,18 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
     }
 
     const handleAddItem = async () =>{
-        console.log(`adding`);
+        console.log(`adding, adminpage.tsx handle add item`);
+        if (categoryRef.current) {
+            console.log('categoryRef: ', categoryRef.current.value);
+            categoryRef.current.value = categoryRef.current.value.trim();
+        }
+
         await window.electron.ipcRenderer.invoke('add-item',
             'default name',
             'default description',
             0.00,
             imgData,
-            'default category',
+            categoryRef.current?.value,
             true,
             5,
         );
@@ -34,10 +42,35 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
     return (
         <>
             <h1>Current: Admin Page</h1>
-            <div style={{'display':'flex', 'justifyContent':'center', 'textAlign':'center', 'flexDirection':'column'}}>
-            <button onClick={chooseImage}>Choose Image</button>
-            <img src={imgSrc} alt="Uploaded" style={{'width': '50%', 'maxHeight':'55rem', 'margin':'auto'}}/>
-            <button onClick={handleAddItem}>Add Item</button>
+            <button className="button" onClick={() => onChangePage('loginPage')}>Go to Login Page</button>
+
+            <div className="flex m-auto flex-col w-120">
+                <button className='button bg-white inline-flex items-center text-center justify-center' onClick={chooseImage}>
+                    Choose Image
+                    <img src={uploadPicture} alt="PLACEHOLDER" className="invert" />
+                </button>
+                    {imgSrc !== '' ? (
+                            <img src={imgSrc} alt="IMAGE" />
+                        ) : null
+                    }
+
+                
+                <div>
+                    <label className="block text-white text-sm mb-2 text-left">
+                    Category
+                    </label>
+                    <input
+                    name="Category"
+                    type="category"
+                    placeholder="New Food"
+                    className={`input`}
+                    ref={categoryRef}
+                    />
+                </div>
+                <button className={'button bg-white'} onClick={handleAddItem}>Add Item</button>
+
+                
+
             </div>
 
         </>

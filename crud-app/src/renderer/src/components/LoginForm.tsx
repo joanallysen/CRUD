@@ -1,3 +1,4 @@
+import UserPage from "@renderer/pages/UserPage";
 import {useEffect, useState} from "react";
 
 type PageName = 'userPage' | 'adminPage' | 'loginPage';
@@ -10,11 +11,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
   const [errors, setErrors] = useState<{ email: string; password: string }>({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-
-  const verifyAccount = (email: string, password: string): Promise<{ isVerified: boolean, isAdmin: boolean }> =>
-  window.electron.ipcRenderer.invoke('verify-account', email, password);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,28 +58,28 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
       // return; LATER FIX
     }
 
-    const result = await verifyAccount(formData.email, formData.password);
+    const result = await window.electron.ipcRenderer.invoke('verify-account', formData.email, formData.password);
     const newErrors : {email:string, password:string} = {email:'', password:''};
-    if (!result.isVerified){
+
+    console.log('result: loginform.tsx', result);
+    if (Object.keys(result).length === 0){
       newErrors.password = 'Email or password not found';
+      setErrors(newErrors);
     }
-
-    setErrors(newErrors);
-
-    console.log('result:', result);
-    setIsAdmin(true);
 
     setIsLoading(true);
     setLoginMessage('');
 
-    if (isAdmin){
-        setLoginMessage('Login successful! Welcome back admin!');
-        setIsLoading(false);
-      } else if (!isAdmin){
-        setLoginMessage('Login successful! Welcome back user!');
-        setIsLoading(false);
-      }
+    if (result.isAdmin){
+      setLoginMessage('Login successful! Welcome back admin!');
+      setIsLoading(false);
+      onChangePage('adminPage');
+    } else{
+      setLoginMessage('Login successful! Welcome back user!');
+      setIsLoading(false);
+      onChangePage('userPage');
     }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{
@@ -118,7 +115,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Email"
-              className={`w-full px-4 py-3 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors ${
+              className={`input ${
                 errors.email 
                   ? 'border-red-400' 
                   : 'border-gray-500 hover:border-gray-400'
@@ -178,7 +175,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
             type="button"
             onClick={handleSubmit}
             disabled={isLoading}
-            className={`w-full py-3 px-6 rounded-full text-gray-800 font-medium transition-all focus:outline-none ${
+            className={`button ${
               isLoading
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-white hover:bg-gray-100 active:bg-gray-200'

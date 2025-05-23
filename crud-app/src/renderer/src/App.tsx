@@ -1,5 +1,6 @@
 import {useState} from 'react'
 import electronLogo from './assets/electron.svg'
+import uploadPicture from "../assets/addPicture.svg"
 
 import {User} from '../../types/user';
 import {Admin} from '../../types/admin';
@@ -40,11 +41,11 @@ const [page, setPage] = useState<PageName>('loginPage');
   }
 
   return (
-    <div className='justify-center text-center flex-col'>
+    <>
       {page == 'loginPage' && <LoginPage onChangePage={handleChangePage}/>}
       {page == 'adminPage' && <AdminPage onChangePage={handleChangePage} />}
       {page == 'userPage' && <UserPage onChangePage={handleChangePage} />}
-    </div>
+    </>
   );
 }
 

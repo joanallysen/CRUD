@@ -163,17 +163,17 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
     collection = db?.collection('admins');
     matchedAccount = await collection?.findOne({email: email});
     console.log(password);
-    console.log(matchedAccount);
+    // console.log(matchedAccount);
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
       console.log(`email: ${email} matched! in admin`)
-      return matchedAccount;
+      return {matchedAccount, isAdmin: true};
     }
 
     collection = db?.collection('users');
     matchedAccount = await collection?.findOne({email: email});
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
       console.log(`email: ${email} matched! in users`);
-      return matchedAccount
+      return {matchedAccount, isAdmin:false}
     }
 
     return {};
@@ -315,16 +315,35 @@ ipcMain.handle('get-item', async(_, category:string = '', search:string = '') =>
     await checkConnection();
 
     if (category !== ''){
+      console.log('Getting items... index.ts');
       const collection = db?.collection('items');
-      const items = await collection?.find({category:category});
-      return items;
+      const itemsRaw = await collection?.find({category:category}).toArray();
+      const items = itemsRaw?.map((item) => ({
+        ...item,
+        id: item._id.toHexString(),
+        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+      }))
+      console.log('items received index.ts get-item:', items);
+      return items || [];
     }
+
+    return [];
   } catch (error){
-    console.log('error at get item', error);
+    console.log('error retrieving item', error);
     return [];
   }
 })
 
+ipcMain.handle('get-unique-category', async(_) =>{
+  try{
+    checkConnection();
+    const categoryField = db?.collection('items').distinct('category');
+    console.log('categoryField type:',typeof categoryField);
+    return categoryField;
+
+  } catch(error) {console.log('Error get-unique-category index.ts: ', error);}
+
+})
 
 // ipcMain.on('get-user', async (e) =>{
 //   try{
