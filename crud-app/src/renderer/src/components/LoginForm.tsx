@@ -1,7 +1,5 @@
-import UserPage from "@renderer/pages/UserPage";
+import CustomerPage from "@renderer/pages/CustomerPage";
 import {useEffect, useState} from "react";
-
-type PageName = 'userPage' | 'adminPage' | 'loginPage';
 
 export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) => void}) : React.JSX.Element{
   const [formData, setFormData] = useState({
@@ -65,6 +63,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
     if (Object.keys(result).length === 0){
       newErrors.password = 'Email or password not found';
       setErrors(newErrors);
+      return;
     }
 
     setIsLoading(true);
@@ -75,9 +74,9 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
       setIsLoading(false);
       onChangePage('adminPage');
     } else{
-      setLoginMessage('Login successful! Welcome back user!');
+      setLoginMessage('Login successful! Welcome back customer!');
       setIsLoading(false);
-      onChangePage('userPage');
+      onChangePage('customerPage');
     }
   }
 
@@ -200,6 +199,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
             <button
               type="button"
               className="text-white underline hover:no-underline focus:outline-none"
+              onClick={() => onChangePage('signUpPage')}
             >
               Create One Now
             </button>

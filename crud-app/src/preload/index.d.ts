@@ -5,4 +5,6 @@ declare global {
     electron: ElectronAPI
     api: unknown
   }
+
+  type PageName = 'customerPage' | 'adminPage' | 'loginPage' | 'signUpPage';
 }

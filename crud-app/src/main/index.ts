@@ -118,7 +118,7 @@ async function checkConnection(){
   if (!db){
       const connected = await connectToMongoDB();
       if (!connected) {
-        console.log('Cannot connect to MongoDB in ipcMain:add-user, main.ts');
+        console.log('Cannot connect to MongoDB, main.ts');
       };
     }
 }
@@ -148,7 +148,7 @@ ipcMain.handle('choose-image', async() =>{
 
 
 // IPC
-import {User} from '../types/user'
+import {Customer} from '../types/customer'
 import {Admin} from '../types/admin'
 import {Item} from '../types/item'
 
@@ -169,10 +169,10 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
       return {matchedAccount, isAdmin: true};
     }
 
-    collection = db?.collection('users');
+    collection = db?.collection('customer');
     matchedAccount = await collection?.findOne({email: email});
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
-      console.log(`email: ${email} matched! in users`);
+      console.log(`email: ${email} matched! in customer`);
       return {matchedAccount, isAdmin:false}
     }
 
@@ -184,24 +184,29 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
 });
 
 
-ipcMain.handle('add-user', async (_, email: string, password:string) =>{
-  console.log(`Adding new user, email: ${email}, password: ${password}`);
+ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
+  console.log(`Adding new customer, email: ${email}, password: ${password}`);
 
   try{
     await checkConnection();
 
-    const collection = db?.collection('users');
+    const collection = db?.collection('customer');
     password = await hashPassword(password);
-    const user = {
+    const customer = {
       email: email,
-      password: password
+      password: password,
+      name: 'User',
+      favorite: [],
+      history: [],
+      currentCart: [],
+      status: 'Not Here'
     }
 
-    await collection?.insertOne(user);
-    console.log("Successfully added a new user");
+    await collection?.insertOne(customer);
+    console.log("Successfully added a new customer");
     return {success: true};
   } catch (error: any){
-    console.error('Error adding user:', error);
+    console.error('Error adding customer:', error);
     return {success: false};
   }
 })
@@ -216,7 +221,7 @@ ipcMain.handle('add-admin', async(_, email, password) =>{
     password = await hashPassword(password);
     const admin = {
       email: email,
-      password: password
+      password: password,
     }
     await collection?.insertOne(admin);
     console.log("Successfully added a new admin");
@@ -228,29 +233,29 @@ ipcMain.handle('add-admin', async(_, email, password) =>{
 })
 
 
-ipcMain.handle('get-user', async(_, email: string) =>{
+ipcMain.handle('get-customer', async(_, email: string) =>{
   try{
     await checkConnection();
 
     if (email === ''){
-      const collection = db?.collection('users');
-      const usersRaw = await collection?.find({}).toArray();
+      const collection = db?.collection('customers');
+      const customersRaw = await collection?.find({}).toArray();
 
-      const users = usersRaw?.map((user) => ({
-        ...user,
-        id: user._id.toHexString(),
+      const customers = customersRaw?.map((customer) => ({
+        ...customer,
+        id: customer._id.toHexString(),
       }));
 
-      console.log('Value is not inserted, showing all user');
-      return users;
+      console.log('Value is not inserted, showing all customer');
+      return customers;
     }
     
     // TODO
-    const collection = db?.collection('users');
+    const collection = db?.collection('customers');
     const data = await collection?.find({email: email}).toArray();
     return data;
   } catch(error){
-    console.error('Error getting user:', error);
+    console.error('Error getting customer:', error);
     return [];
   }
 })
@@ -263,7 +268,6 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
       const collection = db?.collection('admins');
       const adminsRaw = await collection?.find({}).toArray();
       
-      console.log(adminsRaw);
       const admins = adminsRaw?.map((admin) => ({
         ...admin,
         id: admin._id.toHexString(),
@@ -283,7 +287,28 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
   }
 })
 
-ipcMain.handle('add-item', async(_, name:string, description: string, price: number, img: {mime: string, data: string}, category:string, available: boolean, popularity: number) =>{
+ipcMain.handle('update-customer', async(_, email:string, keyAndValue:Record<string, any>) =>{
+  try{
+    await checkConnection();
+
+    const collection = db?.collection('customers');
+
+    await collection?.updateOne(
+      {email: email},
+      {
+        $set:{keyAndValue}
+      }
+    )
+    console.log('Customer data succesfully modified');
+    return {success: true};
+  } catch(error){
+    console.error('Error updating customer:', error);
+    return {success:false};
+  }
+})
+
+
+ipcMain.handle('add-item', async(_, name:string, description: string, price: number, img: {mime: string, data: string}, category:string, special: boolean, available: boolean, popularity: number) =>{
   try{
     await checkConnection();
 
@@ -294,6 +319,7 @@ ipcMain.handle('add-item', async(_, name:string, description: string, price: num
       price: price,
       img: {mime:img.mime, data:Buffer.from(img.data, 'base64')},
       category: category,
+      special: special,
       available: available,
       popularity: popularity,
       modifiedAt: new Date(),
@@ -310,7 +336,7 @@ ipcMain.handle('add-item', async(_, name:string, description: string, price: num
 } 
 ),
 
-ipcMain.handle('get-item', async(_, category:string = '', search:string = '') =>{
+ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
   try{
     await checkConnection();
 
@@ -323,15 +349,54 @@ ipcMain.handle('get-item', async(_, category:string = '', search:string = '') =>
         id: item._id.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
-      console.log('items received index.ts get-item:', items);
+      console.log('items received index.ts get-item:');
       return items || [];
     }
 
-    return [];
+    if(name !== ''){
+      console.log('Getting items by name');
+      const collection = db?.collection('items');
+      const itemsRaw = await collection?.find({name: {$regex:name, $options:'i'}}).toArray();
+      const items = itemsRaw?.map((item) => ({
+        ...item,
+        id: item._id.toHexString(),
+        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+      }))
+      console.log('items received index.ts get-item by name: ', items?.length);
+      return items || [];
+    }
+
+    const collection = db?.collection('items');
+      const itemsRaw = await collection?.find().toArray();
+      const items = itemsRaw?.map((item) => ({
+        ...item,
+        id: item._id.toHexString(),
+        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+      }))
+      console.log('items received index.ts get-item:');
+      return items || [];
   } catch (error){
     console.log('error retrieving item', error);
     return [];
   }
+})
+
+ipcMain.handle('get-special-item', async(_) =>{
+  try{
+    await checkConnection();
+    const collection = db?.collection('items');
+    const itemsRaw = await collection?.find({special: true}).toArray();
+    const items = itemsRaw?.map((item) => ({
+        ...item,
+        id: item._id.toHexString(),
+        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+      }))
+      return items || [];
+  } catch(error){
+    console.log('error get special item, main', error);
+    return [];
+  }
+
 })
 
 ipcMain.handle('get-unique-category', async(_) =>{
@@ -342,48 +407,4 @@ ipcMain.handle('get-unique-category', async(_) =>{
     return categoryField;
 
   } catch(error) {console.log('Error get-unique-category index.ts: ', error);}
-
 })
-
-// ipcMain.on('get-user', async (e) =>{
-//   try{
-//     if (!db) {
-//       const connected = await connectToMongoDB();
-//       if (!connected) {
-//         console.log('Cannot connect: ipcMain get-user');
-//         return { success: false, error: 'Cannot connect to database' };
-//       }
-
-//       return { success: false, error: 'Database connection is null' };
-//     }
-
-//     const collection = db.collection('user');
-//     const result = collection.find({});
-//     return {success: true, collection: result};
-
-//   }
-//   catch(error){
-//     console.error('Error getting debtor:', error);
-//     return {success: false, error};
-//   }
-// })
-
-
-// get the data
-// data = await collection.find({}).toArray();
-// data = map something
-/*
-  const itemMap = data.map(each data =>{
-    ...data,
-    _id: each data.toHexStrng();
-  })
-
-  this is the saved item now => itemMap
-
-  collection.deleteOne({_id: the item.id,})
-
-  function to find only filtered item
-  const sortedItems = await colleciton.find({}).sort({price: 1}.toArray)
-  also category
-*/
-

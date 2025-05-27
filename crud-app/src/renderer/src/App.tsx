@@ -2,39 +2,18 @@ import {useState} from 'react'
 import electronLogo from './assets/electron.svg'
 import uploadPicture from "../assets/addPicture.svg"
 
-import {User} from '../../types/user';
+import {Customer} from '../../types/customer';
 import {Admin} from '../../types/admin';
 import {Item} from '../../types/item';
 
-import UserPage from './pages/UserPage';
+import CustomerPage from './pages/CustomerPage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
-
-type PageName = 'userPage' | 'adminPage' | 'loginPage';
+import SignUpPage from './pages/SignUpPage';
 
 function App(): React.JSX.Element {
-
-  // const addItem = (
-  //   name: string,
-  //   description: string,
-  //   price: number,
-  //   img: { mime: string, data: string },
-  //   category: string,
-  //   available: boolean,
-  //   popularity: number
-  // ): Promise<void> =>
-  //   window.electron.ipcRenderer.invoke(
-  //     'add-item',
-  //     name,
-  //     description,
-  //     price,
-  //     img,
-  //     category,
-  //     available,
-  //     popularity
-  //   );
-
-const [page, setPage] = useState<PageName>('loginPage');
+  const [page, setPage] = useState<PageName>('loginPage');
+  
   function handleChangePage(pageName: PageName){
     console.log('Page changed to ', pageName);
     setPage(pageName);
@@ -44,7 +23,8 @@ const [page, setPage] = useState<PageName>('loginPage');
     <>
       {page == 'loginPage' && <LoginPage onChangePage={handleChangePage}/>}
       {page == 'adminPage' && <AdminPage onChangePage={handleChangePage} />}
-      {page == 'userPage' && <UserPage onChangePage={handleChangePage} />}
+      {page == 'customerPage' && <CustomerPage onChangePage={handleChangePage} />}
+      {page == 'signUpPage' && <SignUpPage onChangePage={handleChangePage} />}
     </>
   );
 }
