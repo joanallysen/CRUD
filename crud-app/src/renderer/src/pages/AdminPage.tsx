@@ -11,7 +11,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
     const descRef = useRef<HTMLInputElement>(null);
     const priceRef = useRef<HTMLInputElement>(null);
     const categoryRef = useRef<HTMLInputElement>(null);
-    const specialRef = useRef<HTMLInputElement>(null);
+    const discountRef = useRef<HTMLInputElement>(null);
     const availableRef = useRef<HTMLInputElement>(null);
 
     
@@ -30,7 +30,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         const desc = descRef.current?.value.trim() ?? '';
         const price = parseFloat(priceRef.current?.value.trim() ?? '0');
         const category = categoryRef.current?.value.trim() ?? '';
-        const special = specialRef.current?.checked ?? false;
+        const discount = discountRef.current?.value.trim() ?? '';
         const available = availableRef.current?.checked ?? false;
 
         await window.electron.ipcRenderer.invoke('add-item',
@@ -39,7 +39,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
             price,
             imgData,
             category, 
-            special,
+            discount,
             available, // availability
             0, // popularity, similar to number buyed, default
         );
@@ -62,15 +62,18 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
 
                 {/* Todo form required is pretty nmuch useless */}
                 <label className="block text-white text-sm mb-2 text-left">Name </label>
-                <input required  name="name" type="text" placeholder="Name" className={`input`} ref={nameRef}/>
+                <input  name="name" type="text" placeholder="Name" className={`input`} ref={nameRef}/>
                 <label className="block text-white text-sm mb-2 text-left">Description </label>
-                <input required  name="name" type="text" placeholder="Description" className={`input`} ref={descRef}/>
+                <input  name="name" type="text" placeholder="Description" className={`input`} ref={descRef}/>
                 <label className="block text-white text-sm mb-2 text-left">Price </label>
-                <input required  name="category" type="number" placeholder="5" className={`input`} ref={priceRef}/>
+                <input  name="category" type="number" placeholder="5" className={`input`} ref={priceRef}/>
+
                 <label className="block text-white text-sm mb-2 text-left"> Category </label>
-                <input required  name="name" type="text" placeholder="Food" className={`input`} ref={categoryRef}/>
-                <label className="block text-white text-sm mb-2 text-left">Special </label>
-                <input name="name" type="checkbox" className={`input`} ref={specialRef}/>
+                <input  name="name" type="text" placeholder="Food" className={`input`} ref={categoryRef}/>
+
+                <label className="block text-white text-sm mb-2 text-left">Discount </label>
+                <input name="name" type="number" placeholder="%" className={'input'} ref={discountRef}/>
+
                 <label className="block text-white text-sm mb-2 text-left">Available </label>
                 <input name="name" type="checkbox" className={`input`} ref={availableRef}/>
                 <button onClick={handleAddItem}>Submit</button>

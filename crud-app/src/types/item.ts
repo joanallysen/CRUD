@@ -8,7 +8,7 @@ export interface Item {
     data: Buffer,
   }
   category: string;
-  special: boolean;
+  discount: number;
   available: boolean;
   popularity: number;
   modifiedAt: Date;

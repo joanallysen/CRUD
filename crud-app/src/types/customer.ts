@@ -6,6 +6,7 @@ export interface Customer{
     password: string;
     name: string;
     favorite: Item;
+    cart: Map<string, {item: Item, amount: number}>;
     history: Item[];
     status: string;
 }

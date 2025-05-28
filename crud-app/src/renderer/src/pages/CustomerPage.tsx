@@ -113,10 +113,16 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
                         <div key={idx}>
                             <img src={`data:${item.img.mime};base64,${item.img.data}`} alt="" />
                             <h2>{item.name}</h2>
-                            <h2>${item.price}</h2>
-                            {item.special ?
-                            <h2>Special Deal!</h2> : <h2> No special deal</h2>
-                        }
+                            
+                            {item.discount > 0 ?
+                            <>
+                                <h2>Special Deal!</h2>
+                                <h2><span className="line-through">${item.price}</span>${item.price * (item.discount/100)}</h2>
+                                <h2>{item.discount}%</h2>
+                            </>
+                            : <h2> No special deal</h2>}
+                            
+                        
                             <button className="cursor-pointer" onClick={() => addToCart(item)}>Add to cart</button>
                         </div>
                     );

@@ -14,6 +14,10 @@ export default function Cart({
     onRemove,
     cartMap,
 }: CartProps): React.JSX.Element {
+    const handleCheckout = () =>{
+        const cartObject = Object.fromEntries(cartMap);
+        window.electron.ipcRenderer.invoke('save-customer-cart', cartObject);
+    }
     let subTotalInt = 0;
     
     cartMap.forEach((cart) =>{
@@ -44,6 +48,7 @@ export default function Cart({
             })}
             <h4>GST: {tax(taxInt)}</h4>
             <h4>Total Price : {priceAfterTax(total)}</h4>
+            <button onClick={handleCheckout}>Go To Checkout</button>
         </div>
     )
 }

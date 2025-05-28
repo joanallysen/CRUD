@@ -29,6 +29,19 @@ function createWindow(): void {
     mainWindow.show()
   })
 
+  mainWindow.on('close', (e) =>{
+    const choice = dialog.showMessageBoxSync(mainWindow, {
+    type: 'question',
+    buttons: ['Yes', 'No'],
+    title: 'Confirm',
+    message: 'Are you sure you want to leave this haunted house?',
+    });
+
+    if (choice === 1) {
+      e.preventDefault(); // Don't exit
+    }
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
@@ -166,6 +179,7 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
     // console.log(matchedAccount);
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
       console.log(`email: ${email} matched! in admin`)
+      currentUser = matchedAccount;
       return {matchedAccount, isAdmin: true};
     }
 
@@ -173,9 +187,11 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
     matchedAccount = await collection?.findOne({email: email});
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
       console.log(`email: ${email} matched! in customer`);
+      currentUser = matchedAccount;
       return {matchedAccount, isAdmin:false}
     }
 
+    console.log('User not matched anywhere');
     return {};
   } catch (error: any){
     console.error('Error verifying:', error);
@@ -198,7 +214,7 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
       name: 'User',
       favorite: [],
       history: [],
-      currentCart: [],
+      cart: [],
       status: 'Not Here'
     }
 
@@ -287,14 +303,17 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
   }
 })
 
-ipcMain.handle('update-customer', async(_, email:string, keyAndValue:Record<string, any>) =>{
+let currentUser : any; // can be customer or admin
+ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
   try{
     await checkConnection();
 
+    console.log('The current user is:', currentUser);
+    console.log('Updating user.......')
     const collection = db?.collection('customers');
 
     await collection?.updateOne(
-      {email: email},
+      {email: currentUser.email},
       {
         $set:{keyAndValue}
       }
@@ -307,8 +326,29 @@ ipcMain.handle('update-customer', async(_, email:string, keyAndValue:Record<stri
   }
 })
 
+ipcMain.handle('save-customer-cart', async(_, cartObject: Record<string, { item: Item, amount: number }>) =>{
+  try{
+    await checkConnection();
+    const collection = db?.collection('customer')
+    console.log(currentUser.email);
+    
+    console.log('cartObject:', cartObject);
+    const result = await collection?.updateOne(
+      {email: currentUser.email},
+      {
+        $set: {cart: cartObject}
+      }
+    )
 
-ipcMain.handle('add-item', async(_, name:string, description: string, price: number, img: {mime: string, data: string}, category:string, special: boolean, available: boolean, popularity: number) =>{
+    return {success: true};
+  } catch(error){
+    console.error('Error updating customer cart', error);
+    return {success: false};
+  }
+})
+
+
+ipcMain.handle('add-item', async(_, name:string, description: string, price: number, img: {mime: string, data: string}, category:string, discount: number, available: boolean, popularity: number) =>{
   try{
     await checkConnection();
 
@@ -319,7 +359,7 @@ ipcMain.handle('add-item', async(_, name:string, description: string, price: num
       price: price,
       img: {mime:img.mime, data:Buffer.from(img.data, 'base64')},
       category: category,
-      special: special,
+      discount: discount,
       available: available,
       popularity: popularity,
       modifiedAt: new Date(),
@@ -406,5 +446,5 @@ ipcMain.handle('get-unique-category', async(_) =>{
     console.log('categoryField type:',typeof categoryField);
     return categoryField;
 
-  } catch(error) {console.log('Error get-unique-category index.ts: ', error);}
+  } catch(error) {console.log('Error get-unique-category index.ts: ', error); return {};}
 })
