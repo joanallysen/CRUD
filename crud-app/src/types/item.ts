@@ -12,4 +12,7 @@ export interface Item {
   available: boolean;
   popularity: number;
   modifiedAt: Date;
+
+  // mongodb have its own _id
+  _id: any;
 }

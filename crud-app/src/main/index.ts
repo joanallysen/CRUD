@@ -105,6 +105,10 @@ dotenv.config();
 const uri = process.env.MONGODB_URI;
 let dbClient: MongoClient | null = null;
 let db: Db | null = null;
+import { Document } from 'mongodb';
+let customerCollection: Collection<Document> | null = null;
+let adminCollection: Collection<Document> | null = null;
+let itemCollection: Collection<Document> | null = null;
 
 async function connectToMongoDB(){
   try{
@@ -113,6 +117,10 @@ async function connectToMongoDB(){
     await dbClient.connect();
     console.log('Connecting to MongoDB');
     db = dbClient.db(process.env.DB_NAME || 'my-app');
+    customerCollection = db?.collection('customers');
+    adminCollection = db?.collection('admins');
+    itemCollection = db?.collection('items');
+
     return true;
   } catch (error){
     console.error('Cannot connect to MongoDB:', error);
@@ -128,7 +136,8 @@ async function hashPassword(password: string){
 }
 
 async function checkConnection(){
-  if (!db){
+  if (!db || !customerCollection || !adminCollection || !itemCollection){
+    console.log('database or collection is not connected, connecting...');
       const connected = await connectToMongoDB();
       if (!connected) {
         console.log('Cannot connect to MongoDB, main.ts');
@@ -171,10 +180,8 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
   try{
     await checkConnection();
 
-    // checkEmailExist(email);
-    let collection; let matchedAccount;
-    collection = db?.collection('admins');
-    matchedAccount = await collection?.findOne({email: email});
+    let matchedAccount;
+    matchedAccount = await adminCollection?.findOne({email: email});
     console.log(password);
     // console.log(matchedAccount);
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
@@ -183,8 +190,7 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
       return {matchedAccount, isAdmin: true};
     }
 
-    collection = db?.collection('customer');
-    matchedAccount = await collection?.findOne({email: email});
+    matchedAccount = await customerCollection?.findOne({email: email});
     if(matchedAccount && await bcrypt.compare(password, matchedAccount.password)){
       console.log(`email: ${email} matched! in customer`);
       currentUser = matchedAccount;
@@ -206,7 +212,6 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
   try{
     await checkConnection();
 
-    const collection = db?.collection('customer');
     password = await hashPassword(password);
     const customer = {
       email: email,
@@ -218,7 +223,7 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
       status: 'Not Here'
     }
 
-    await collection?.insertOne(customer);
+    await customerCollection?.insertOne(customer);
     console.log("Successfully added a new customer");
     return {success: true};
   } catch (error: any){
@@ -233,13 +238,12 @@ ipcMain.handle('add-admin', async(_, email, password) =>{
   try{
     await checkConnection();
 
-    const collection = db?.collection('admins');
     password = await hashPassword(password);
     const admin = {
       email: email,
       password: password,
     }
-    await collection?.insertOne(admin);
+    await adminCollection?.insertOne(admin);
     console.log("Successfully added a new admin");
     return {success: true};
   } catch (error: any){
@@ -254,8 +258,7 @@ ipcMain.handle('get-customer', async(_, email: string) =>{
     await checkConnection();
 
     if (email === ''){
-      const collection = db?.collection('customers');
-      const customersRaw = await collection?.find({}).toArray();
+      const customersRaw = await customerCollection?.find({}).toArray();
 
       const customers = customersRaw?.map((customer) => ({
         ...customer,
@@ -266,9 +269,8 @@ ipcMain.handle('get-customer', async(_, email: string) =>{
       return customers;
     }
     
-    // TODO
-    const collection = db?.collection('customers');
-    const data = await collection?.find({email: email}).toArray();
+    // TODO return the actual searched customer
+    const data = await customerCollection?.find({email: email}).toArray();
     return data;
   } catch(error){
     console.error('Error getting customer:', error);
@@ -281,8 +283,7 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
     await checkConnection();
 
     if (email === ''){
-      const collection = db?.collection('admins');
-      const adminsRaw = await collection?.find({}).toArray();
+      const adminsRaw = await adminCollection?.find({}).toArray();
       
       const admins = adminsRaw?.map((admin) => ({
         ...admin,
@@ -293,9 +294,8 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
       return admins;
     }
     
-    // TODO
-    const collection = db?.collection('admins');
-    const data = await collection?.find({email: email}).toArray();
+    // TODO return the actual admin data
+    const data = await adminCollection?.find({email: email}).toArray();
     return data;
   } catch(error){
     console.error('Error getting admin:', error);
@@ -310,9 +310,8 @@ ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
 
     console.log('The current user is:', currentUser);
     console.log('Updating user.......')
-    const collection = db?.collection('customers');
 
-    await collection?.updateOne(
+    await customerCollection?.updateOne(
       {email: currentUser.email},
       {
         $set:{keyAndValue}
@@ -329,11 +328,10 @@ ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
 ipcMain.handle('save-customer-cart', async(_, cartObject: Record<string, { item: Item, amount: number }>) =>{
   try{
     await checkConnection();
-    const collection = db?.collection('customer')
     console.log(currentUser.email);
     
     console.log('cartObject:', cartObject);
-    const result = await collection?.updateOne(
+    const result = await customerCollection?.updateOne(
       {email: currentUser.email},
       {
         $set: {cart: cartObject}
@@ -347,12 +345,25 @@ ipcMain.handle('save-customer-cart', async(_, cartObject: Record<string, { item:
   }
 })
 
+ipcMain.handle('get-customer-cart', async(_) =>{
+  try{
+    await checkConnection();
+    // no check for admin rn
+    const customer = await customerCollection?.findOne({email: currentUser.email});
+    const cart = customer?.cart;
+    console.log('received cart: ', cart);
+    return cart;
+  } catch (error){
+    console.log('Error in receiving customer cart', error);
+    return {success: false};
+  }
+})
 
-ipcMain.handle('add-item', async(_, name:string, description: string, price: number, img: {mime: string, data: string}, category:string, discount: number, available: boolean, popularity: number) =>{
+
+ipcMain.handle('add-item', async(_,name:string, description: string, price: number, img: {mime: string, data: string}, category:string, discount: number, available: boolean, popularity: number) =>{
   try{
     await checkConnection();
 
-    const collection = db?.collection('items');
     const item = {
       name: name,
       description: description,
@@ -365,7 +376,7 @@ ipcMain.handle('add-item', async(_, name:string, description: string, price: num
       modifiedAt: new Date(),
     }
 
-    await collection?.insertOne(item);
+    await itemCollection?.insertOne(item);
     console.log("Successfully added a new item.");
     return {success: true};
   }
@@ -382,21 +393,19 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
 
     if (category !== ''){
       console.log('Getting items... index.ts');
-      const collection = db?.collection('items');
-      const itemsRaw = await collection?.find({category:category}).toArray();
+      const itemsRaw = await itemCollection?.find({category:category}).toArray();
       const items = itemsRaw?.map((item) => ({
         ...item,
         id: item._id.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
-      console.log('items received index.ts get-item:');
+      console.log('items received index.ts get-item');
       return items || [];
     }
 
     if(name !== ''){
       console.log('Getting items by name');
-      const collection = db?.collection('items');
-      const itemsRaw = await collection?.find({name: {$regex:name, $options:'i'}}).toArray();
+      const itemsRaw = await itemCollection?.find({name: {$regex:name, $options:'i'}}).toArray();
       const items = itemsRaw?.map((item) => ({
         ...item,
         id: item._id.toHexString(),
@@ -406,14 +415,13 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
       return items || [];
     }
 
-    const collection = db?.collection('items');
-      const itemsRaw = await collection?.find().toArray();
+      const itemsRaw = await itemCollection?.find().toArray();
       const items = itemsRaw?.map((item) => ({
         ...item,
         id: item._id.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
-      console.log('items received index.ts get-item:');
+      console.log('items received index.ts get-item');
       return items || [];
   } catch (error){
     console.log('error retrieving item', error);
@@ -424,8 +432,7 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
 ipcMain.handle('get-special-item', async(_) =>{
   try{
     await checkConnection();
-    const collection = db?.collection('items');
-    const itemsRaw = await collection?.find({special: true}).toArray();
+    const itemsRaw = await itemCollection?.find({special: true}).toArray();
     const items = itemsRaw?.map((item) => ({
         ...item,
         id: item._id.toHexString(),
@@ -442,7 +449,7 @@ ipcMain.handle('get-special-item', async(_) =>{
 ipcMain.handle('get-unique-category', async(_) =>{
   try{
     checkConnection();
-    const categoryField = db?.collection('items').distinct('category');
+    const categoryField = itemCollection?.distinct('category');
     console.log('categoryField type:',typeof categoryField);
     return categoryField;
 

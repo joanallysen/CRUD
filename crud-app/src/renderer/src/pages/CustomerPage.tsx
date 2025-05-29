@@ -66,12 +66,19 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
 
     useEffect(() => {
     const loadData = async () => {
-        const itemsData = await window.electron.ipcRenderer.invoke('get-item', '', '');
+        const itemsData = await window.electron.ipcRenderer.invoke('get-item', '', ''); // empty meant get all
         const categoriesData = await window.electron.ipcRenderer.invoke('get-unique-category');
+        const cartData = await window.electron.ipcRenderer.invoke('get-customer-cart');
         
-        // These will be batched automatically in React 18+
         setItems(itemsData);
         setCategories(categoriesData);
+        setCartMap(prevCart =>{
+            let newCart = new Map(prevCart);
+            for (const itemAndAmounts of cartData){
+                newCart.set(itemAndAmounts.item.id, {item: itemAndAmounts.item, amount:itemAndAmounts.amount});
+            }
+            return newCart;
+        })
     };
     
     loadData();

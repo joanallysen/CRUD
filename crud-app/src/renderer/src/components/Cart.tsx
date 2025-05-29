@@ -15,7 +15,14 @@ export default function Cart({
     cartMap,
 }: CartProps): React.JSX.Element {
     const handleCheckout = () =>{
-        const cartObject = Object.fromEntries(cartMap);
+        
+        // new Item in cart have _id
+        let cartObject: { item: any; amount: number }[] = []
+        for(const [key, value] of cartMap){
+            // remove _id duplicate
+            const {_id, ...otherProperty} = value.item; 
+            cartObject.push({ item: { ...otherProperty, id: key.toString() }, amount: value.amount })
+        }
         window.electron.ipcRenderer.invoke('save-customer-cart', cartObject);
     }
     let subTotalInt = 0;
