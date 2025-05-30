@@ -6,5 +6,8 @@ declare global {
     api: unknown
   }
 
-  type PageName = 'customerPage' | 'adminPage' | 'loginPage' | 'signUpPage';
+  type PageName = 
+  'customerPage' | 'customerHistoryPage' |
+  'adminPage' | 
+  'loginPage' | 'signUpPage' ;
 }

@@ -1,5 +1,5 @@
 import {Item} from '../../../types/item';
-
+import {Customer} from '../../../types/customer';
 
 type CartProps = {
     onIncrease: (id: string) => void;
@@ -15,13 +15,9 @@ export default function Cart({
     cartMap,
 }: CartProps): React.JSX.Element {
     const handleCheckout = () =>{
-        
-        // new Item in cart have _id
-        let cartObject: { item: any; amount: number }[] = []
-        for(const [key, value] of cartMap){
-            // remove _id duplicate
-            const {_id, ...otherProperty} = value.item; 
-            cartObject.push({ item: { ...otherProperty, id: key.toString() }, amount: value.amount })
+        let cartObject : Customer['cart'] = []
+        for(const[_, value] of cartMap){
+            cartObject.push({itemId: value.item.id, amount: value.amount});
         }
         window.electron.ipcRenderer.invoke('save-customer-cart', cartObject);
     }
@@ -47,9 +43,9 @@ export default function Cart({
                 return (
                     <div key={idx}>
                         <h2>{cart.item.name}, ${cart.item.price}, {cart.amount}</h2>
-                        <button onClick={() => onIncrease(cart.item.id)}>+</button>
-                        <button onClick={() => onDecrease(cart.item.id)}>-</button>
-                        <button onClick={() => onRemove(cart.item.id)}>X</button>
+                        <button onClick={() => onIncrease(cart.item.id!)}>+</button>
+                        <button onClick={() => onDecrease(cart.item.id!)}>-</button>
+                        <button onClick={() => onRemove(cart.item.id!)}>X</button>
                     </div>
                 )
             })}

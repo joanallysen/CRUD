@@ -8,17 +8,15 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
     const [categories, setCategories] = useState<string[]>([]);
     const [cartMap, setCartMap] = useState<Map<string, {item:Item, amount:number}>>(new Map());
     
-    
-    
     const addToCart = (newItem: Item) => {
         // first check if it exist
         setCartMap(prevCart =>{
             const newCart = new Map(prevCart);
-            if (newCart.has(newItem.id)){
-                const entry = newCart.get(newItem.id);
-                newCart.set(newItem.id, {item: entry!.item, amount: entry!.amount + 1});
+            if (newCart.has(newItem.id!)){
+                const entry = newCart.get(newItem.id!);
+                newCart.set(newItem.id!, {item: entry!.item, amount: entry!.amount + 1});
             } else {
-                newCart.set(newItem.id, {item: newItem, amount: 1})
+                newCart.set(newItem.id!, {item: newItem!, amount: 1})
             }
             return newCart;
         })
@@ -138,12 +136,15 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
                 </div>
             </div>
             
-
-            <Cart onIncrease={increaseQuantity} 
+            <div className="bg-black">
+                <button onClick={() => onChangePage('customerHistoryPage')}>History (temp)</button>
+                <Cart onIncrease={increaseQuantity} 
                 onDecrease={decreaseQuantity}
                 onRemove={removeFromCart} 
                 cartMap={cartMap}
                 ></Cart>
+            </div>
+            
         </div>
         </>
     )

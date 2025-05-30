@@ -1,5 +1,8 @@
+import { ObjectId } from "mongodb";
+
 export interface Item {
-  id: string;
+  id:string
+  _id: ObjectId;
   name: string;
   description: string;
   price: number;
@@ -11,8 +14,6 @@ export interface Item {
   discount: number;
   available: boolean;
   popularity: number;
+  special: boolean;
   modifiedAt: Date;
-
-  // mongodb have its own _id
-  _id: any;
 }

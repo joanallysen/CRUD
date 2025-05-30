@@ -325,18 +325,17 @@ ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
   }
 })
 
-ipcMain.handle('save-customer-cart', async(_, cartObject: Record<string, { item: Item, amount: number }>) =>{
+ipcMain.handle('save-customer-cart', async(_, cartObject: Customer['cart']) =>{
   try{
     await checkConnection();
     console.log(currentUser.email);
     
     console.log('cartObject:', cartObject);
-    const result = await customerCollection?.updateOne(
-      {email: currentUser.email},
-      {
-        $set: {cart: cartObject}
-      }
-    )
+
+    await customerCollection?.updateOne(
+      { email: currentUser.email },
+      { $set: { cart: cartObject } }  // Save the array directly
+    );
 
     return {success: true};
   } catch(error){
@@ -345,21 +344,8 @@ ipcMain.handle('save-customer-cart', async(_, cartObject: Record<string, { item:
   }
 })
 
-ipcMain.handle('get-customer-cart', async(_) =>{
-  try{
-    await checkConnection();
-    // no check for admin rn
-    const customer = await customerCollection?.findOne({email: currentUser.email});
-    const cart = customer?.cart;
-    console.log('received cart: ', cart);
-    return cart;
-  } catch (error){
-    console.log('Error in receiving customer cart', error);
-    return {success: false};
-  }
-})
 
-
+// FOR ITEM REMEMBER TO ALWAYS CONVER BUFFER TO STRING AND STRING BACK TO BUFFER IN BACKEND
 ipcMain.handle('add-item', async(_,name:string, description: string, price: number, img: {mime: string, data: string}, category:string, discount: number, available: boolean, popularity: number) =>{
   try{
     await checkConnection();
@@ -390,6 +376,7 @@ ipcMain.handle('add-item', async(_,name:string, description: string, price: numb
 ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
   try{
     await checkConnection();
+
 
     if (category !== ''){
       console.log('Getting items... index.ts');
@@ -428,6 +415,57 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
     return [];
   }
 })
+
+ipcMain.handle('get-customer-cart', async (_) => {
+  try {
+    const cart: { itemId: string, amount: number }[] = currentUser.cart;
+    
+    if (!cart || cart.length === 0) {
+      return [];
+    }
+
+    // gotta adjust with typescript later but this is more simpler
+    // {item: Item, amount: number}[]
+    let itemObjectAndAmount: any[] = [];
+    
+    for (const cartItem of cart) {
+      if (!ObjectId.isValid(cartItem.itemId)) {
+        console.warn(`Invalid itemId: ${cartItem.itemId}`);
+        continue;
+      }
+
+      const actualItemObject = await itemCollection?.findOne({
+        _id: ObjectId.createFromHexString(cartItem.itemId)
+      });
+      
+      if (actualItemObject) {
+        const formattedItem = {
+          ...actualItemObject,
+          id: actualItemObject._id.toHexString(),
+          img: {
+            mime: actualItemObject.img.mime, 
+            data: actualItemObject.img.data.toString('base64')
+          }
+        };
+        
+        itemObjectAndAmount.push({
+          item: formattedItem,
+          amount: cartItem.amount
+        });
+      } else {
+        console.warn(`Item not found for id: ${cartItem.itemId}`);
+      }
+    }
+    
+    console.log('itemObject:', itemObjectAndAmount);
+    return itemObjectAndAmount;
+    
+  } catch (error) {
+    console.error('Error fetching customer cart:', error);
+    throw error;
+  }
+});
+
 
 ipcMain.handle('get-special-item', async(_) =>{
   try{
