@@ -1,5 +1,6 @@
 import {useState, useRef} from "react"
 import uploadPicture from '../assets/uploadPicture.svg'; 
+import { Item } from "src/types/item";
 
 
 export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) => void}): React.JSX.Element{
@@ -30,19 +31,21 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         const desc = descRef.current?.value.trim() ?? '';
         const price = parseFloat(priceRef.current?.value.trim() ?? '0');
         const category = categoryRef.current?.value.trim() ?? '';
-        const discount = discountRef.current?.value.trim() ?? '';
+        const discount = parseFloat(discountRef.current?.value.trim() ?? '0');
         const available = availableRef.current?.checked ?? false;
 
-        await window.electron.ipcRenderer.invoke('add-item',
-            name,
-            desc,
-            price,
-            imgData,
-            category, 
-            discount,
-            available, // availability
-            0, // popularity, similar to number buyed, default
-        );
+        const item : Item = {
+            name: name,
+            description: desc,
+            price: price,
+            img: imgData,
+            category: category,
+            discount: discount,
+            available: available,
+            popularity: 0,
+            modifiedAt: new Date
+        };
+        await window.electron.ipcRenderer.invoke('add-item', item);
     }
 
     return (

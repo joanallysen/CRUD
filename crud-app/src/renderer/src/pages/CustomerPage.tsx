@@ -1,12 +1,17 @@
 import {useState, useEffect, useRef} from "react"
 
 import {Item} from '../../../types/item';
-import Cart from '../components/Cart';
+import Cart from "@renderer/components/Cart";
+import CustomerSidebar from "@renderer/components/Sidebar";
+import ItemMenu from "@renderer/components/ItemMenu";
 
 export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName) => void}) : React.JSX.Element{
     const [items, setItems] = useState<Item[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [cartMap, setCartMap] = useState<Map<string, {item:Item, amount:number}>>(new Map());
+    
+    type CustomerSection = 'Ordering' | 'Summary' | 'Payment' 
+    const[currentSection, setCurrentSection] = useState<CustomerSection>('Ordering'); 
     
     const addToCart = (newItem: Item) => {
         // first check if it exist
@@ -62,6 +67,10 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
         console.log('items in frontend', items);
     }
 
+    const handleChangeSection = (customerSection: CustomerSection) =>{
+        setCurrentSection(customerSection);
+    }
+
     useEffect(() => {
     const loadData = async () => {
         const itemsData = await window.electron.ipcRenderer.invoke('get-item', '', ''); // empty meant get all
@@ -82,71 +91,70 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
     loadData();
 }, []);
 
-    return (
-        <>
+    switch(currentSection){
+        case 'Ordering':
+          return(  
+                <>
+                    <div className="grid grid-cols-[280px_1fr_320px] gap-0 h-screen bg-background">
+                        <div className="bg-background shadow-lg">
+                            <CustomerSidebar onGetItem={handleGetItems} categories={categories}></CustomerSidebar>   
+                        </div>
 
-        <div className="grid grid-cols-[1fr_3fr_1fr] gap-4 h-full">
-            {/* SideBar */}
-            <div className="bg-black">
-                <ul>
-                    <li><button className="cursor-pointer" onClick={() => handleGetItems('', '')}>All</button></li>
-                    {categories?.map((category, idx) =>{
+                        <div className="p-6 overflow-y auto">
+                            <div className="flex items-center space-x-4 mb-6">
+                                <div className="relative">
+                                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" name="search" placeholder="Search..." ref={searchRef} className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"/>
+                                </div>
+                                
+                            </div>
+                            
+                            <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors" onClick={() => handleGetItems('', (searchRef.current)!.value.trim())}>Search</button>
+                            <ItemMenu onAddToCart={addToCart} items={items}></ItemMenu>
+                        </div>
+                        
+                        
+                        <div>
+                            <div className="p-6">
+                                <button onClick={() => onChangePage('customerHistoryPage')} className="w-full mb-4 text-gray-600 hover:text-orange-500 text-sm font-medium transition-colors">View Order History (temp)</button>
+                                <Cart onIncrease={increaseQuantity}  onDecrease={decreaseQuantity} onRemove={removeFromCart} cartMap={cartMap}></Cart>
+                                <button onClick={() => handleChangeSection('Summary')} className="w-full bg-primary-500 hover:bg-primary-600 text-background font-bold py-3 px-4 rounded-lg transition-colors mt-4">Continue</button>
+                            </div>
+                        </div>
+                        
+                    </div> 
+                </>
+        )
+        case 'Summary':
+            return(
+                <>
+                    <h1>User summary</h1>
+                    <div className="grid grid-cols-[3fr_1fr] gap-4 h-full">
+                        {Array.from(cartMap.values()).map((cart, idx) =>{
                         return (
-                            <li key={idx}>
-                                <button className="cursor-pointer" onClick={() => handleGetItems(category, '')}><h2>{category}</h2></button>
-                            </li>
+                            <div key={idx}>
+                                <img src={`data:${cart.item.img.mime};base64,${cart.item.img.data}`} alt="" className='w-full h-full object-cover'/>
+                                <h2>{cart.item.name}, ${cart.item.price}, {cart.amount}</h2>
+                                <button onClick={() => increaseQuantity(cart.item.id!)}>+</button>
+                                <button onClick={() => decreaseQuantity(cart.item.id!)}>-</button>
+                                <button onClick={() => removeFromCart(cart.item.id!)}>X</button>
+                            </div>
                         )
                     })}
-                </ul>
-
-                <h1 className="text-white">Current: User Page</h1>
-                <button className="text-white" onClick={() => onChangePage('loginPage')}>Back to User Page</button>
-
-                
-            </div>
-            {/* Menu Page */}
-
-            <div>
-                <input type="text" name="search" placeholder="Search..." ref={searchRef}/>
-                <button className="cursor-pointer" onClick={() => handleGetItems('', (searchRef.current)!.value.trim())}>Search</button>
-                {/* Make sure item is loaded first */}
-                {items.length > 0 && <h1>{items[0].category}</h1>} 
-                <div className="grid grid-cols-4 gap-4">
-            
-                {items?.map((item, idx) => {
-                    return (
-                        <div key={idx}>
-                            <img src={`data:${item.img.mime};base64,${item.img.data}`} alt="" />
-                            <h2>{item.name}</h2>
-                            
-                            {item.discount > 0 ?
-                            <>
-                                <h2>Special Deal!</h2>
-                                <h2><span className="line-through">${item.price}</span>${item.price * (item.discount/100)}</h2>
-                                <h2>{item.discount}%</h2>
-                            </>
-                            : <h2> No special deal</h2>}
-                            
-                        
-                            <button className="cursor-pointer" onClick={() => addToCart(item)}>Add to cart</button>
-                        </div>
-                    );
-                })}
-
-                </div>
-            </div>
-            
-            <div className="bg-black">
-                <button onClick={() => onChangePage('customerHistoryPage')}>History (temp)</button>
-                <Cart onIncrease={increaseQuantity} 
-                onDecrease={decreaseQuantity}
-                onRemove={removeFromCart} 
-                cartMap={cartMap}
-                ></Cart>
-            </div>
-            
-        </div>
-        </>
-    )
+                    </div>
+                    <button onClick={() => handleChangeSection('Ordering')}>Return to order</button>
+                    <button onClick={() => handleChangeSection('Payment')}>Continue to payment</button>
+                </>
+            )
+        case 'Payment':
+            return(
+                <>
+                    <button onClick={() => handleChangeSection('Ordering')}>Return to order</button>
+                    <h1>Payment</h1>
+                </>
+            )
+    }
 }
 

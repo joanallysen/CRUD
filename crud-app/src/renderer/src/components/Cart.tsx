@@ -1,5 +1,5 @@
 import {Item} from '../../../types/item';
-import {Customer} from '../../../types/customer';
+import {Customer, CartItem} from '../../../types/customer';
 
 type CartProps = {
     onIncrease: (id: string) => void;
@@ -15,11 +15,11 @@ export default function Cart({
     cartMap,
 }: CartProps): React.JSX.Element {
     const handleCheckout = () =>{
-        let cartObject : Customer['cart'] = []
+        let cartItems : CartItem[] = [];
         for(const[_, value] of cartMap){
-            cartObject.push({itemId: value.item.id, amount: value.amount});
+            cartItems.push({itemId: value.item.id!, amount: value.amount});
         }
-        window.electron.ipcRenderer.invoke('save-customer-cart', cartObject);
+        window.electron.ipcRenderer.invoke('save-customer-cart', cartItems);
     }
     let subTotalInt = 0;
     
@@ -37,21 +37,30 @@ export default function Cart({
     const priceAfterTax = (total: number) => (total/100).toFixed(2);
     
     return (
-        <div className="bg-black">
+        <>
             {Array.from(cartMap.values()).map((cart, idx) =>{
 
                 return (
-                    <div key={idx}>
-                        <h2>{cart.item.name}, ${cart.item.price}, {cart.amount}</h2>
-                        <button onClick={() => onIncrease(cart.item.id!)}>+</button>
-                        <button onClick={() => onDecrease(cart.item.id!)}>-</button>
-                        <button onClick={() => onRemove(cart.item.id!)}>X</button>
+                    <div key={idx} className='flex items-center justify-between' >
+                        <div className='flex-1'>
+                            <h5>{cart.item.name}</h5>
+                            <p>${cart.item.price}</p>
+                        </div>
+                        <div className='flex'>
+                            <button onClick={() => onIncrease(cart.item.id!)}>+</button>
+                            <p>{cart.amount}</p>
+                            <button onClick={() => onDecrease(cart.item.id!)}>-</button>
+                            <button onClick={() => onRemove(cart.item.id!)}>X</button>
+                        </div>
                     </div>
                 )
             })}
-            <h4>GST: {tax(taxInt)}</h4>
-            <h4>Total Price : {priceAfterTax(total)}</h4>
-            <button onClick={handleCheckout}>Go To Checkout</button>
-        </div>
+            <h5 className='mt-4'>GST: {tax(taxInt)}</h5>
+            <h5>Total Price : {priceAfterTax(total)}</h5>
+            <button 
+                onClick={handleCheckout}
+                className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-3 rounded-lg transition-colors mt-4'
+            >Go To Checkout</button>
+        </>
     )
 }

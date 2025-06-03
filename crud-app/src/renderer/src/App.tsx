@@ -5,7 +5,7 @@ import {Admin} from '../../types/admin';
 import {Item} from '../../types/item';
 
 import CustomerPage from './pages/CustomerPage';
-// import CustomerHistoryPage from './pages/CustomerHistoryPage';
+import CustomerHistoryPage from './pages/CustomerHistoryPage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
@@ -24,7 +24,7 @@ function App(): React.JSX.Element {
       {page == 'adminPage' && <AdminPage onChangePage={handleChangePage} />}
       {page == 'signUpPage' && <SignUpPage onChangePage={handleChangePage} />}
       {page == 'customerPage' && <CustomerPage onChangePage={handleChangePage} />}
-      {/* {page == 'customerHistoryPage' && <CustomerHistoryPage onChangePage={handleChangePage} />} */}
+      {page == 'customerHistoryPage' && <CustomerHistoryPage onChangePage={handleChangePage} />}
       
     </>
   );

@@ -151,6 +151,7 @@ function getMimeType(filePath: string) : string {
   return 'application/octet-stream' // unknown mime
 }
 
+
 ipcMain.handle('choose-image', async() =>{
   const result = await dialog.showOpenDialog({
     title: 'Select Image',
@@ -170,7 +171,7 @@ ipcMain.handle('choose-image', async() =>{
 
 
 // IPC
-import {Customer} from '../types/customer'
+import {CartItem, CartItemObject, Customer} from '../types/customer'
 import {Admin} from '../types/admin'
 import {Item} from '../types/item'
 
@@ -213,7 +214,7 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
     await checkConnection();
 
     password = await hashPassword(password);
-    const customer = {
+    const customer : Customer= {
       email: email,
       password: password,
       name: 'User',
@@ -239,10 +240,11 @@ ipcMain.handle('add-admin', async(_, email, password) =>{
     await checkConnection();
 
     password = await hashPassword(password);
-    const admin = {
+    const admin : Admin = {
       email: email,
       password: password,
     }
+    
     await adminCollection?.insertOne(admin);
     console.log("Successfully added a new admin");
     return {success: true};
@@ -258,15 +260,15 @@ ipcMain.handle('get-customer', async(_, email: string) =>{
     await checkConnection();
 
     if (email === ''){
-      const customersRaw = await customerCollection?.find({}).toArray();
+      const customersRaw = await customerCollection?.find({}).toArray() as Customer[];
 
-      const customers = customersRaw?.map((customer) => ({
+      const customers : Customer[] = (customersRaw ?? []).map((customer) => ({
         ...customer,
-        id: customer._id.toHexString(),
+        id: customer._id?.toHexString(),
       }));
 
       console.log('Value is not inserted, showing all customer');
-      return customers;
+      return customers; // this is returning with the _id, see interface for more detail
     }
     
     // TODO return the actual searched customer
@@ -283,11 +285,11 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
     await checkConnection();
 
     if (email === ''){
-      const adminsRaw = await adminCollection?.find({}).toArray();
+      const adminsRaw = await adminCollection?.find({}).toArray() as Admin[];
       
-      const admins = adminsRaw?.map((admin) => ({
+      const admins : Admin[] = adminsRaw?.map((admin) => ({
         ...admin,
-        id: admin._id.toHexString(),
+        id: admin._id?.toHexString(),
       }));
       
       console.log('Value is not inserted, showing all admin');
@@ -314,7 +316,7 @@ ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
     await customerCollection?.updateOne(
       {email: currentUser.email},
       {
-        $set:{keyAndValue}
+        $set:keyAndValue
       }
     )
     console.log('Customer data succesfully modified');
@@ -325,18 +327,19 @@ ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
   }
 })
 
-ipcMain.handle('save-customer-cart', async(_, cartObject: Customer['cart']) =>{
+ipcMain.handle('save-customer-cart', async(_, cartItems: CartItem[]) =>{
   try{
     await checkConnection();
     console.log(currentUser.email);
     
-    console.log('cartObject:', cartObject);
+    console.log('cartObject:', cartItems);
 
     await customerCollection?.updateOne(
       { email: currentUser.email },
-      { $set: { cart: cartObject } }  // Save the array directly
+      { $set: { cart: cartItems } }  // Save the array directly
     );
 
+    currentUser.cart = cartItems;
     return {success: true};
   } catch(error){
     console.error('Error updating customer cart', error);
@@ -346,23 +349,19 @@ ipcMain.handle('save-customer-cart', async(_, cartObject: Customer['cart']) =>{
 
 
 // FOR ITEM REMEMBER TO ALWAYS CONVER BUFFER TO STRING AND STRING BACK TO BUFFER IN BACKEND
-ipcMain.handle('add-item', async(_,name:string, description: string, price: number, img: {mime: string, data: string}, category:string, discount: number, available: boolean, popularity: number) =>{
+ipcMain.handle('add-item', async(_, item : Item) =>{
   try{
     await checkConnection();
 
-    const item = {
-      name: name,
-      description: description,
-      price: price,
-      img: {mime:img.mime, data:Buffer.from(img.data, 'base64')},
-      category: category,
-      discount: discount,
-      available: available,
-      popularity: popularity,
-      modifiedAt: new Date(),
+    const itemMongo : Item = {
+      ...item,
+      img: {
+        mime:item.img.mime,
+        data: typeof item.img.data === 'string' ? Buffer.from(item.img.data, 'base64'): item.img.data, // already a Buffer
+      }
     }
 
-    await itemCollection?.insertOne(item);
+    await itemCollection?.insertOne(itemMongo);
     console.log("Successfully added a new item.");
     return {success: true};
   }
@@ -377,13 +376,12 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
   try{
     await checkConnection();
 
-
     if (category !== ''){
       console.log('Getting items... index.ts');
-      const itemsRaw = await itemCollection?.find({category:category}).toArray();
-      const items = itemsRaw?.map((item) => ({
+      const itemsRaw = await itemCollection?.find({category:category}).toArray() as Item[];
+      const items : Item[] = itemsRaw?.map((item) => ({
         ...item,
-        id: item._id.toHexString(),
+        id: item._id?.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
       console.log('items received index.ts get-item');
@@ -392,20 +390,20 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
 
     if(name !== ''){
       console.log('Getting items by name');
-      const itemsRaw = await itemCollection?.find({name: {$regex:name, $options:'i'}}).toArray();
-      const items = itemsRaw?.map((item) => ({
+      const itemsRaw = await itemCollection?.find({name: {$regex:name, $options:'i'}}).toArray() as Item[];
+      const items : Item[] = itemsRaw?.map((item) => ({
         ...item,
-        id: item._id.toHexString(),
+        id: item._id?.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
       console.log('items received index.ts get-item by name: ', items?.length);
       return items || [];
     }
 
-      const itemsRaw = await itemCollection?.find().toArray();
-      const items = itemsRaw?.map((item) => ({
+      const itemsRaw = await itemCollection?.find().toArray() as Item[];
+      const items : Item[] = itemsRaw?.map((item) => ({
         ...item,
-        id: item._id.toHexString(),
+        id: item._id?.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
       console.log('items received index.ts get-item');
@@ -418,15 +416,15 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
 
 ipcMain.handle('get-customer-cart', async (_) => {
   try {
-    const cart: { itemId: string, amount: number }[] = currentUser.cart;
+    const cart: CartItem[] = currentUser.cart;
     
     if (!cart || cart.length === 0) {
       return [];
     }
 
     // gotta adjust with typescript later but this is more simpler
-    // {item: Item, amount: number}[]
-    let itemObjectAndAmount: any[] = [];
+    // {item: Item, amount: number}[] pretty much cartItem but with the actual item
+    let itemObjectAndAmount: CartItemObject[] = [];
     
     for (const cartItem of cart) {
       if (!ObjectId.isValid(cartItem.itemId)) {
@@ -470,10 +468,10 @@ ipcMain.handle('get-customer-cart', async (_) => {
 ipcMain.handle('get-special-item', async(_) =>{
   try{
     await checkConnection();
-    const itemsRaw = await itemCollection?.find({special: true}).toArray();
+    const itemsRaw : Item[] = await itemCollection?.find({special: true}).toArray() as Item[];
     const items = itemsRaw?.map((item) => ({
         ...item,
-        id: item._id.toHexString(),
+        id: item._id?.toHexString(),
         img: {mime: item.img.mime, data: item.img.data.toString('base64')}
       }))
       return items || [];
@@ -487,7 +485,7 @@ ipcMain.handle('get-special-item', async(_) =>{
 ipcMain.handle('get-unique-category', async(_) =>{
   try{
     checkConnection();
-    const categoryField = itemCollection?.distinct('category');
+    const categoryField = await itemCollection?.distinct('category');
     console.log('categoryField type:',typeof categoryField);
     return categoryField;
 
