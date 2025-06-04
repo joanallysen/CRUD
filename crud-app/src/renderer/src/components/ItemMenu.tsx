@@ -11,35 +11,33 @@ export default function ItemMenu(
         <>
             
             {/* Make sure item is loaded first */}
-            {items.length > 0 && <h2>{items[1].category}</h2>} 
-            <div className="grid grid-cols-4 gap-4">
+            {items.length > 0 && <h3 className='mb-10'>{items[0].category}</h3>} 
+            <div className="scrollbar-custom grid grid-cols-4 gap-10 overflow-y-auto">
         
             {/* Card */}
             {items?.map((item, idx) => {
                 return (
-                    <div key={idx} className='rounded-xl bg-background-50 p-6 hover:shadow-lg transition-shadow'>
-                        <div className='w-40 aspect-square overflow-hidden rounded-xl mb-4'>
-                            <img className="w-full h-full object-cover" src={`data:${item.img.mime};base64,${item.img.data}`} alt="" />
+                    <div key={idx} className=''>
+                        <div className='w-full mb-5'>
+                            <img 
+                            className='w-full h-70 object-cover rounded-2xl' 
+                            src={`data:${item.img.mime};base64,${item.img.data}`} alt="" />
                         </div>
-                        <h5 className='font-bold'>{item.name}</h5>
-                        <p>{item.description}</p>
+                        <p className='font-bold'>{item.name}</p>
+                        <p className='text-gray-400'>{item.description}</p>
                         
                         <div className='flex justify-between text-center'>
                             {item.discount > 0 ?
                         <div>
-                            <span className='inline-block bg-red-100 text-red-600 font-semibold px-2 py-1 rounded-full mb-2'>
-                                {item.discount}% OFF
-                            </span>
-
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-gray-500 line-through text-lg">${item.price}</span>
-                                    <span className="text-xl font-bold text-red-600">
-                                        ${(item.price * (item.discount/100)).toFixed(2)}
-                                    </span>
-                                </div>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-gray-500 line-through text-lg">${item.price}</span>
+                                <span className="text-red-600">
+                                    <p>${(item.price * (item.discount/100)).toFixed(2)}</p>
+                                </span>
+                            </div>
                         </div>
                         : <div>
-                            <span className="text-xl font-bold text-text">${item.price}</span>
+                            <span className='text-gray-500'>${item.price}</span>
                         </div>}
                         
                     

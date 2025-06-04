@@ -1,9 +1,6 @@
 @import './base.css';
 @import "tailwindcss";
 
-:root{
-  
-}
 
 html, body{
   height: 100vh;
@@ -79,14 +76,60 @@ body{
   --color-accent-950: #eceafa;
 }
 
-h1{font-size: 64px;}
-h2{font-size: 48px;}
-h3{font-size: 40px};
-h4{font-size: 32px};
-h5{font-size: 24px};
-p{font-size: 20px};
-button{font-size: 20px};
+h1 { font-size: 2.5rem; }  /* 40px */
+h2 { font-size: 2rem; }    /* 32px */
+h3 { font-size: 1.75rem; } /* 28px */
+h4 { font-size: 1.5rem; }  /* 24px */
+h5 { font-size: 1.25rem; } /* 20px */
+p, button { font-size: 1rem; } /* 16px */
 
+
+/* Modern Custom Scrollbar Styles */
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px; /* Width of vertical scrollbar */
+    height: 8px; /* Height of horizontal scrollbar */
+}
+
+::-webkit-scrollbar-track {
+    background: #2a2a2a; /* Dark track background */
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4a4a4a; /* Scrollbar thumb color */
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a; /* Lighter on hover */
+}
+
+/* Alternative minimal style */
+.minimal-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.minimal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.minimal-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.minimal-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* For Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #30cf33 #2a2a2a00;
+}
 
 @layer components{
   .input {
