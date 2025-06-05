@@ -126,9 +126,15 @@ p, button { font-size: 1rem; } /* 16px */
 }
 
 /* For Firefox */
+/* Hide scrollbar for Firefox */
 * {
-    scrollbar-width: thin;
-    scrollbar-color: #30cf33 #2a2a2a00;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+/* Hide scrollbar for Webkit browsers */
+::-webkit-scrollbar {
+  display: none;
 }
 
 @layer components{

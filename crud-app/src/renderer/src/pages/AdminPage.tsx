@@ -1,9 +1,31 @@
 import {useState, useRef} from "react"
 import uploadPicture from '../assets/uploadPicture.svg'; 
 import { Item } from "src/types/item";
+import AdminSidebar from '@renderer/components/AdminSidebar'
 
 
 export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) => void}): React.JSX.Element{
+    const [items, setItems] = useState<Item[]>([]);
+    const [categories, setCategories] = useState<string[]>([]);
+    const [itemMenuTitle, setItemMenuTitle] = useState<string>('All Item');
+
+    type AdminSection = 'Home'
+    const [currentSection, setCurrentSection] = useState<AdminSection>('Home');
+
+        const handleGetItems = async (category:string, search:string) => {
+        if (search !== ''){
+            console.log('searcing for ', search);
+            setItemMenuTitle(`Showing '${search}'`);
+        } else if(category === ''){
+            setItemMenuTitle('All Item');
+        } else{
+            setItemMenuTitle(category);
+        }
+        setItems(await window.electron.ipcRenderer.invoke('get-item', category, search));
+        console.log('items in frontend', items);
+    }
+
+
     const [imgSrc, setImgSrc] = useState<string>('');
     const [imgData, setImgData] = useState<{mime: string; data: string}>({mime: '', data: ''});
     // Buffer is undefined on frontend
@@ -50,6 +72,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
 
     return (
         <>
+        <AdminSidebar categories={categories} onGetItems={handleGetItems}></AdminSidebar>
             <h1>Current: Admin Page</h1>
             <button className="button" onClick={() => onChangePage('loginPage')}>Go to Login Page</button>
 

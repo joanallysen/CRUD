@@ -2,14 +2,16 @@ import {useState, useEffect, useRef} from "react"
 
 import {Item} from '../../../types/item';
 import Cart from "@renderer/components/Cart";
-import CustomerSidebar from "@renderer/components/Sidebar";
+import CustomerSidebar from "@renderer/components/CustomerSidebar";
 import ItemMenu from "@renderer/components/ItemMenu";
+import SearchBar from "@renderer/components/SearchBar";
 
 export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName) => void}) : React.JSX.Element{
     const [items, setItems] = useState<Item[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [cartMap, setCartMap] = useState<Map<string, {item:Item, amount:number}>>(new Map());
-    
+    const [itemMenuTitle, setItemMenuTitle] = useState<string>('All Item');
+
     type CustomerSection = 'Ordering' | 'Summary' | 'Payment' 
     const[currentSection, setCurrentSection] = useState<CustomerSection>('Ordering'); 
     
@@ -59,10 +61,15 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
         })
     }
 
-
-    const searchRef = useRef<HTMLInputElement>(null);
-
     const handleGetItems = async (category:string, search:string) => {
+        if (search !== ''){
+            console.log('searcing for ', search);
+            setItemMenuTitle(`Showing '${search}'`);
+        } else if(category === ''){
+            setItemMenuTitle('All Item');
+        } else{
+            setItemMenuTitle(category);
+        }
         setItems(await window.electron.ipcRenderer.invoke('get-item', category, search));
         console.log('items in frontend', items);
     }
@@ -87,6 +94,8 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
             return newCart;
         })
     };
+
+    
     
     loadData();
 }, []);
@@ -96,55 +105,22 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
           return(  
                 <>
                     <div className="grid grid-cols-[200px_1fr_400px] gap-0 h-screen bg-background">
-                        <div className="bg-background shadow-lg">
+                        <div className="bg-accent-50">
                             <CustomerSidebar onGetItem={handleGetItems} categories={categories}></CustomerSidebar>
-                            {/* <button onClick={() => onChangePage('loginPage')}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" d="M15 4.001H5v14a2 2 0 0 0 2 2h8m1-5l3-3m0 0l-3-3m3 3H9"/></svg>
-                            </button> */}
                         </div>
 
                         <div className="p-6 overflow-y-auto">
-                            <div className="mb-6">
-                                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-                                {/* Search Icon */}
-                                <div className="pl-3 text-gray-400">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                                    />
-                                    </svg>
-                                </div>
-
-                                {/* Input */}
-                                <input
-                                    type="text"
-                                    name="search"
-                                    placeholder="Search..."
-                                    ref={searchRef}
-                                    className="flex-grow px-3 py-3 focus:outline-none text-white bg-transparent"
-                                />
-
-                                {/* Search button INSIDE the border */}
-                                <button
-                                    className="bg-primary-500 hover:bg-primary-600 px-4 py-3 transition-colors rounded-2x1"
-                                    onClick={() => handleGetItems('', searchRef.current!.value.trim())}
-                                >
-                                    Search
-                                </button>
-                                </div>
-                            </div>
-
-                            <ItemMenu onAddToCart={addToCart} items={items} />
-                            </div>
-
-                                                    
+                            <SearchBar onGetItems={handleGetItems}></SearchBar>
+                            <ItemMenu onAddToCart={addToCart} items={items} itemMenuTitle={itemMenuTitle}/>
+                            </div>                      
                         
-                        <div>
-                            <button onClick={() => onChangePage('customerHistoryPage')} className="w-full mb-4 text-gray-600 hover:text-orange-500 text-sm font-medium transition-colors">View Order History (temp)</button>
-                            <Cart onIncrease={increaseQuantity}  onDecrease={decreaseQuantity} onRemove={removeFromCart} cartMap={cartMap}></Cart>
+                        <div className="bg-accent-50">
+                            {/* <button onClick={() => onChangePage('customerHistoryPage')} className="w-full mb-4 text-gray-600 hover:text-orange-500 text-sm font-medium transition-colors">View Order History (temp)</button> */}
+                            <Cart onIncrease={increaseQuantity}  
+                            onDecrease={decreaseQuantity} 
+                            onRemove={removeFromCart}
+                            onChangeSection={handleChangeSection} 
+                            cartMap={cartMap}></Cart>
                         </div>
                         
                     </div> 
@@ -153,19 +129,56 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
         case 'Summary':
             return(
                 <>
-                    <h1>User summary</h1>
                     <div className="grid grid-cols-[3fr_1fr] gap-4 h-full">
-                        {Array.from(cartMap.values()).map((cart, idx) =>{
-                        return (
-                            <div key={idx}>
-                                <img src={`data:${cart.item.img.mime};base64,${cart.item.img.data}`} alt="" className='w-full h-full object-cover'/>
-                                <h2>{cart.item.name}, ${cart.item.price}, {cart.amount}</h2>
-                                <button onClick={() => increaseQuantity(cart.item.id!)}>+</button>
-                                <button onClick={() => decreaseQuantity(cart.item.id!)}>-</button>
-                                <button onClick={() => removeFromCart(cart.item.id!)}>X</button>
+                        {/* Order */}
+                        <div className="flex flex-col p-6">
+                            <h3 className="mb-2 font-bold">Order</h3>
+                            {Array.from(cartMap.values()).map((cart, idx) =>{
+                            return (
+                                <div key={idx} className='flex items-center justify-between relative mb-10 gap-2' >
+                                <div className='w-60 h-40'>
+                                    <img className=' w-full h-full object-cover'
+                                    src={`data:${cart.item.img.mime};base64,${cart.item.img.data}`} alt="" />
+                                </div>
+                                <div className='flex-1 align-text-top'>
+                                    <p className='font-bold'>{cart.item.name}</p>
+                                    <p className='text-gray-500'>${cart.item.price}</p>
+                                </div>
+                                <div className='flex flex-1 gap-5 flex-row'>
+                                    <button onClick={() => increaseQuantity(cart.item.id!)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21q-.425 0-.712-.288T11 20v-7H4q-.425 0-.712-.288T3 12t.288-.712T4 11h7V4q0-.425.288-.712T12 3t.713.288T13 4v7h7q.425 0 .713.288T21 12t-.288.713T20 13h-7v7q0 .425-.288.713T12 21"/></svg>
+                                    </button>
+                                    <p>{cart.amount}</p>
+                                    <button onClick={() => decreaseQuantity(cart.item.id!)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 13v-2h12v2z"/></svg>
+                                    </button>
+                                </div>
+                                <button className='absolute top-0 right-0 rounded-2xl'
+                                onClick={() => removeFromCart(cart.item.id!)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="grey" d="m12 13.4l-4.9 4.9q-.275.275-.7.275t-.7-.275t-.275-.7t.275-.7l4.9-4.9l-4.9-4.9q-.275-.275-.275-.7t.275-.7t.7-.275t.7.275l4.9 4.9l4.9-4.9q.275-.275.7-.275t.7.275t.275.7t-.275.7L13.4 12l4.9 4.9q.275.275.275.7t-.275.7t-.7.275t-.7-.275z"/></svg></button>
                             </div>
-                        )
-                    })}
+                            )
+                            })}
+
+                        </div>
+                        <div className='flex justify-center text-center flex-col'>
+                    <h5 className='font-bold'>Payment Summary</h5>
+                    <div className='grid grid-cols-2 gap-2 mt-4'>
+                        {/* <p className='text-left'>Sub Total</p>
+                        <p className='text-right'>${subTotal}</p>
+                        <p className='text-left'>GST </p>
+                        <p className='text-right'>${tax}</p>
+                        <p className='text-left mt-4'>Total</p>
+                        <p className ='text-right mt-4'> ${priceAfterTax}</p> */}
+                    </div>
+                    <button 
+                        onClick= {() => handleChangeSection}
+                        className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-3 rounded-xl transition-colors mt-4'
+                    >Go To Checkout</button>
+                </div>
+                            
+
+
                     </div>
                     <button onClick={() => handleChangeSection('Ordering')}>Return to order</button>
                     <button onClick={() => handleChangeSection('Payment')}>Continue to payment</button>

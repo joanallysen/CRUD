@@ -7,16 +7,16 @@ export default function CustomerSidebar(
 ) : React.JSX.Element{
     return(
         <>
-        <div className="p-6 h-full">
-            <h1 className="font-bold mb-6">Order</h1>
+        <div className="h-full">
+            <h3 className="font-bold pl-6 pt-6 mb-6">Order</h3>
             <ul className="space-y-2">
                 <li>
-                    <button className="w-full flex items-center space-x-3 p-3 rounded-lg text-left hover:bg-primary-600" onClick={() => onGetItem('', '')}>All items</button>
+                    <button className="w-full flex items-center p-6 hover:bg-accent-300" onClick={() => onGetItem('', '')}>All items</button>
                     </li>
                 {categories?.map((category, idx) =>{
                     return (
                         <li key={idx}>
-                            <button className="w-full flex items-center space-x-3 p-3 rounded-lg text-left hover:bg-primary-600 transition" onClick={() => onGetItem(category, '')}>{category}</button>
+                            <button className="w-full flex items-center p-6 text-left hover:bg-accent-300 transition" onClick={() => onGetItem(category, '')}>{category}</button>
                         </li>
                     )
                 })}

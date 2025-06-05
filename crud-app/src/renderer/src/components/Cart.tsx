@@ -1,10 +1,13 @@
 import {Item} from '../../../types/item';
 import {Customer, CartItem} from '../../../types/customer';
 
+type CustomerSection = 'Ordering' | 'Summary' | 'Payment';
+
 type CartProps = {
     onIncrease: (id: string) => void;
     onDecrease: (id: string) => void;
-    onRemove: (id: string) => void;
+    onRemove: (id: string) => void;     
+    onChangeSection: (section: CustomerSection) => void;
     cartMap: Map<string, { item: Item; amount: number }>;
 };
 
@@ -12,6 +15,7 @@ export default function Cart({
     onIncrease,
     onDecrease,
     onRemove,
+    onChangeSection,
     cartMap,
 }: CartProps): React.JSX.Element {
     const handleCheckout = () =>{
@@ -20,6 +24,8 @@ export default function Cart({
             cartItems.push({itemId: value.item.id!, amount: value.amount});
         }
         window.electron.ipcRenderer.invoke('save-customer-cart', cartItems);
+        
+        onChangeSection('Summary');
     }
 
     let subTotalInt = 0;
@@ -42,18 +48,25 @@ export default function Cart({
             
             <div className="fixed top-0 right-0 p-6 h-screen flex flex-col overflow-hidden z-50 w-[400px]">
                 <div className='flex-grow-[8] overflow-y-auto'>
-                    <h3 className='mb-2 font-bold'>Your Cart</h3>
+                    <h3 className='mb-6 font-bold'>Your Cart</h3>
                     {Array.from(cartMap.values()).map((cart, idx) =>{
 
                         return (
                             <div key={idx} className='flex items-center justify-between relative mb-10 gap-2' >
                                 <div className='flex-1 h-20'>
-                                    <img className='object-cover w-full h-full'
+                                    <img className=' w-full h-full object-cover'
                                     src={`data:${cart.item.img.mime};base64,${cart.item.img.data}`} alt="" />
                                 </div>
-                                <div className='flex-1'>
+                            <div className='flex-1'>
                                     <p className='font-bold'>{cart.item.name}</p>
-                                    <p className='text-gray-500'>${cart.item.price}</p>
+                                    {
+                                        cart.item.discount > 0 ?
+                                        <>
+                                        <p className= "line-through text-lg text-gray-500">${cart.item.price}</p>    
+                                        <p className="text-red-600">${(cart.item.price * (cart.item.discount/100)).toFixed(2)}</p>
+                                        </>  
+                                        : <p className='text-gray-500'>${cart.item.price}</p>
+                                    }
                                 </div>
                                 <div className='flex flex-1 gap-5 flex-row'>
                                     <button onClick={() => onIncrease(cart.item.id!)}>
