@@ -1,18 +1,22 @@
-import {useState, useEffect, useRef} from "react"
+import {useState, useEffect, useRef} from 'react'
 
 import {Item} from '../../../types/item';
 import Cart from "@renderer/components/Cart";
-import CustomerSidebar from "@renderer/components/CustomerSidebar";
+import CategorySidebar from "@renderer/components/CategorySidebar";
 import ItemMenu from "@renderer/components/ItemMenu";
 import SearchBar from "@renderer/components/SearchBar";
+import LoadingBlur from '@renderer/components/LoadingBlur';
+import CustomerSidebar from '@renderer/components/CustomerSidebar';
 
 export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName) => void}) : React.JSX.Element{
     const [items, setItems] = useState<Item[]>([]);
     const [categories, setCategories] = useState<string[]>([]);
     const [cartMap, setCartMap] = useState<Map<string, {item:Item, amount:number}>>(new Map());
     const [itemMenuTitle, setItemMenuTitle] = useState<string>('All Item');
+    const categoryAndItem = useRef<Map<string, Item[]>>(new Map());
 
-    type CustomerSection = 'Ordering' | 'Summary' | 'Payment' 
+
+    type CustomerSection = 'Ordering' | 'Summary' | 'Payment' ;
     const[currentSection, setCurrentSection] = useState<CustomerSection>('Ordering'); 
     
     const addToCart = (newItem: Item) => {
@@ -61,17 +65,72 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
         })
     }
 
-    const handleGetItems = async (category:string, search:string) => {
-        if (search !== ''){
-            console.log('searcing for ', search);
+    const handleGetItems = async (category: string, search: string) => {
+        if (search !== '') {
+            const regex = new RegExp(search, 'i');
+            let itemsMatched : Item[] = []
+            categoryAndItem.current.forEach((items: Item[], _: string) => {
+                items.forEach((item) => {
+                    if (regex.test(item.name)) {
+                        itemsMatched.push(item);
+                    }
+                });
+            });
             setItemMenuTitle(`Showing '${search}'`);
-        } else if(category === ''){
-            setItemMenuTitle('All Item');
-        } else{
-            setItemMenuTitle(category);
+            setItems(itemsMatched);
+            return;
         }
-        setItems(await window.electron.ipcRenderer.invoke('get-item', category, search));
+        
+        // this will pretty much be called when dom loaded
+        console.log('category string: ', category);
+        if (category === '') {
+            if (categoryAndItem.current.size === 0) {
+                console.log('Sorting the item based on the category.');
+                const allItems = await window.electron.ipcRenderer.invoke('get-item', '', '');
+                
+                allItems.forEach((item) => {
+                    if (categoryAndItem.current.has(item.category)) {
+                        categoryAndItem.current.get(item.category)!.push(item);
+                    } else {
+                        categoryAndItem.current.set(item.category, [item]);
+                    }
+                });
+                
+                setItems(allItems);
+                setItemMenuTitle('All Item');
+            } else {
+                const valuesArray = Array.from(categoryAndItem.current.values());
+                setItems(valuesArray.flat());
+                setItemMenuTitle('All Item');
+            }
+
+            console.log('items in frontend', items);
+            console.log('items in categoryAndItem', categoryAndItem.current);
+            return;
+        }
+        
+        console.log('categoryAndItemMap: ', categoryAndItem);
+        if (categoryAndItem.current.has(category)) {
+            console.log('THIS CATEGORY HAS BEEN SEEN BEFORE!');
+            setItems(categoryAndItem.current.get(category) ?? []);
+            setItemMenuTitle(category);
+                    
+            console.log('items in frontend', items);
+            console.log('items in categoryAndItem', categoryAndItem.current);
+            return;
+        }
+        
+        // Fetch new data and cache it, rarely gonna be called
+
+        console.log("Detected new category");
+        const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search);
+        categoryAndItem.current.set(category, fetchedItems);
+        setItems(fetchedItems);
+        setItemMenuTitle(category);
+                
         console.log('items in frontend', items);
+        console.log('items in categoryAndItem', categoryAndItem.current);
+        return;
     }
 
     const handleChangeSection = (customerSection: CustomerSection) =>{
@@ -80,11 +139,11 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
 
     useEffect(() => {
     const loadData = async () => {
-        const itemsData = await window.electron.ipcRenderer.invoke('get-item', '', ''); // empty meant get all
+        // load all required data
+        handleGetItems('', '');
         const categoriesData = await window.electron.ipcRenderer.invoke('get-unique-category');
         const cartData = await window.electron.ipcRenderer.invoke('get-customer-cart');
         
-        setItems(itemsData);
         setCategories(categoriesData);
         setCartMap(prevCart =>{
             let newCart = new Map(prevCart);
@@ -104,17 +163,25 @@ export default function CustomerPage({onChangePage}:{onChangePage: (p: PageName)
         case 'Ordering':
           return(  
                 <>
-                    <div className="grid grid-cols-[200px_1fr_400px] gap-0 h-screen bg-background">
-                        <div className="bg-accent-50">
-                            <CustomerSidebar onGetItem={handleGetItems} categories={categories}></CustomerSidebar>
+                {(categoryAndItem.current.size <= 0 ? <LoadingBlur /> : null)}
+                    <div className="grid grid-cols-[4rem_10rem_1fr_24rem] gap-0 h-screen bg-background">
+                        <div className='bg-gray-800'>
+                            <CustomerSidebar></CustomerSidebar>
                         </div>
 
-                        <div className="p-6 overflow-y-auto">
+
+                        <div className="bg-gray-900">
+                            <CategorySidebar onGetItem={handleGetItems} categories={categories}></CategorySidebar>
+                        </div>
+
+
+
+                        <div className="p-6 overflow-y-auto bg-gray-960">
                             <SearchBar onGetItems={handleGetItems}></SearchBar>
                             <ItemMenu onAddToCart={addToCart} items={items} itemMenuTitle={itemMenuTitle}/>
                             </div>                      
                         
-                        <div className="bg-accent-50">
+                        <div className="bg-gray-900">
                             {/* <button onClick={() => onChangePage('customerHistoryPage')} className="w-full mb-4 text-gray-600 hover:text-orange-500 text-sm font-medium transition-colors">View Order History (temp)</button> */}
                             <Cart onIncrease={increaseQuantity}  
                             onDecrease={decreaseQuantity} 

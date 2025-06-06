@@ -1,10 +1,15 @@
-import {Item} from '../../../types/item'
 import {useRef} from 'react'
 export default function SearchBar({onGetItems}: {onGetItems: (category: string, search:string) => void}): React.JSX.Element {
     const searchRef = useRef<HTMLInputElement>(null);
 
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter') {
+            onGetItems('', searchRef.current!.value.trim());
+        }
+    };
+
     return(
-        <div className="mb-6 bg-accent-100">
+        <div className="mb-6">
             <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             {/* Search Icon */}
             <div className="pl-3 text-gray-400">
@@ -20,15 +25,8 @@ export default function SearchBar({onGetItems}: {onGetItems: (category: string, 
                 placeholder="Search..."
                 ref={searchRef}
                 className="flex-grow px-3 py-3 focus:outline-none text-white bg-transparent"
+                onKeyDown={handleKeyDown}
             />
-
-            {/* Search button INSIDE the border */}
-            <button
-                className="bg-primary-500 hover:bg-primary-600 px-4 py-3 transition-colors rounded-2x1"
-                onClick={() => onGetItems('', searchRef.current!.value.trim())}
-            >
-                Search
-            </button>
             </div>
         </div>
     )

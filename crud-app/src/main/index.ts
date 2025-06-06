@@ -454,8 +454,6 @@ ipcMain.handle('get-customer-cart', async (_) => {
         console.warn(`Item not found for id: ${cartItem.itemId}`);
       }
     }
-    
-    console.log('itemObject:', itemObjectAndAmount);
     return itemObjectAndAmount;
     
   } catch (error) {

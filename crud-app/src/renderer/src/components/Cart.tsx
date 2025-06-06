@@ -46,7 +46,7 @@ export default function Cart({
     return (
         <>
             
-            <div className="fixed top-0 right-0 p-6 h-screen flex flex-col overflow-hidden z-50 w-[400px]">
+            <div className="p-6 h-screen flex flex-col overflow-hidden z-50 w-[400px]">
                 <div className='flex-grow-[8] overflow-y-auto'>
                     <h3 className='mb-6 font-bold'>Your Cart</h3>
                     {Array.from(cartMap.values()).map((cart, idx) =>{
