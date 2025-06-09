@@ -1,14 +1,32 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {Item} from '../../../types/item'
 
 export default function ItemMenu(
-    {onAddToCart, items,  itemMenuTitle} :
+    {onAddToCart, items,  itemMenuTitle, onAddToFavorites, onRemoveFromFavorites, isItemFavorited} :
     {
         onAddToCart: (item: Item) => void;
         items:Item[];
         itemMenuTitle: string;
+
+        onAddToFavorites: (item: Item) => void;
+        onRemoveFromFavorites: (itemId: string) => void;
+        isItemFavorited: (itemId: string) => boolean;
     }
 ) : React.JSX.Element{
+
+    const sortedItems = useMemo(() => {
+        return [...items].sort((a, b) => {
+            const aIsFavorited = isItemFavorited(a.id!);
+            const bIsFavorited = isItemFavorited(b.id!);
+            
+            // If a is favorited and b is not, a comes first (return -1)
+            if (aIsFavorited && !bIsFavorited) return -1;
+            // If b is favorited and a is not, b comes first (return 1)
+            if (!aIsFavorited && bIsFavorited) return 1;
+            // If both have same favorite status, maintain original order
+            return 0;
+        });
+    }, [items, isItemFavorited]);
 
     return(
         <>
@@ -18,9 +36,9 @@ export default function ItemMenu(
             <div className="scrollbar-custom grid grid-cols-4 gap-5 overflow-y-auto">
         
             {/* Card */}
-            {items?.map((item, idx) => {
+            {sortedItems?.map((item) => {
                 return (
-                    <div key={idx} className='bg-accent-50 rounded-lg hover:scale-105 transition-transform'>
+                    <div key={item.id} className='bg-accent-50 rounded-lg hover:scale-105 transition-transform relative'>
                         <div className='w-full flex justify-center items-center overflow-hidden'>
                             <img 
                                 className='w-80 h-80 p-6 object-cover rounded-4xl pt-7' 
@@ -49,8 +67,29 @@ export default function ItemMenu(
                             </button>
                             </span>
                         </div>
-
-                        
+                        <div className="absolute top-2 right-2 z-10">
+                            <button 
+                                onClick={() => {
+                                    if (isItemFavorited && isItemFavorited(item.id!)) {
+                                        onRemoveFromFavorites?.(item.id!);
+                                    } else {
+                                        onAddToFavorites?.(item);
+                                    }
+                                }}
+                                className={`p-2 rounded-full transition-colors cursor-pointer ${
+                                    isItemFavorited && isItemFavorited(item.id!) 
+                                    ? 'text-pink-500 hover:text-pink-400' 
+                                    : 'text-gray-400 hover:text-pink-400'
+                                }`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
+                                    <path 
+                                        fill="currentColor" 
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                         
                 );

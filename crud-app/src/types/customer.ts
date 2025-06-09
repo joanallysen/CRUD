@@ -7,7 +7,7 @@ export interface Customer{
     email: string;
     password: string;
     name: string;
-    favorite: Item[];
+    favorites: string[];
     cart: CartItem[];
     history: HistoryTransaction[];
     status: string;
@@ -17,11 +17,6 @@ export interface Customer{
 export interface CartItem{
     itemId: string;
     amount: number;
-}
-
-// with the actual item
-export interface CartItemObject{
-
 }
 
 export interface HistoryTransaction {

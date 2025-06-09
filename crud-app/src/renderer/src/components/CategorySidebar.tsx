@@ -16,7 +16,7 @@ export default function CategorySidebar(
     
     return(
         <>
-        <div className="h-full">
+        <div className="h-full fixed w-40">
             <h3 className="font-bold pl-6 pt-6 mb-6">Order</h3>
             <ul className="list-none p-0 m-0">
                 <li>

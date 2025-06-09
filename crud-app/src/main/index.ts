@@ -106,9 +106,9 @@ const uri = process.env.MONGODB_URI;
 let dbClient: MongoClient | null = null;
 let db: Db | null = null;
 import { Document } from 'mongodb';
-let customerCollection: Collection<Document> | null = null;
-let adminCollection: Collection<Document> | null = null;
-let itemCollection: Collection<Document> | null = null;
+let customerCollection: Collection<Customer> | null = null;
+let adminCollection: Collection<Admin> | null = null;
+let itemCollection: Collection<Item> | null = null;
 
 async function connectToMongoDB(){
   try{
@@ -171,7 +171,7 @@ ipcMain.handle('choose-image', async() =>{
 
 
 // IPC
-import {CartItem, CartItemObject, Customer} from '../types/customer'
+import {CartItem, Customer} from '../types/customer'
 import {Admin} from '../types/admin'
 import {Item} from '../types/item'
 
@@ -218,7 +218,7 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
       email: email,
       password: password,
       name: 'User',
-      favorite: [],
+      favorites: [],
       history: [],
       cart: [],
       status: 'Not Here'
@@ -424,7 +424,7 @@ ipcMain.handle('get-customer-cart', async (_) => {
 
     // gotta adjust with typescript later but this is more simpler
     // {item: Item, amount: number}[] pretty much cartItem but with the actual item
-    let itemObjectAndAmount: CartItemObject[] = [];
+    let itemObjectAndAmount: any = [];
     
     for (const cartItem of cart) {
       if (!ObjectId.isValid(cartItem.itemId)) {
@@ -489,3 +489,123 @@ ipcMain.handle('get-unique-category', async(_) =>{
 
   } catch(error) {console.log('Error get-unique-category index.ts: ', error); return {};}
 })
+// Add these new IPC handlers to your main.ts file
+
+// Add item to customer's favorites
+ipcMain.handle('add-to-favorites', async (_, itemId: string) => {
+  try {
+    await checkConnection();
+    
+    if (!currentUser) {
+      return { success: false, message: 'No user logged in' };
+    }
+
+    // Check if item already exists in favorites
+    const existingFavorite = currentUser.favorites?.find((fav: string) => fav === itemId);
+    if (existingFavorite) {
+      return { success: false, message: 'Item already in favorites' };
+    }
+
+    await customerCollection?.updateOne(
+      { email: currentUser.email },
+      { $push: { favorites: itemId } }
+    );
+
+    // Update current user object
+    if (!currentUser.favorites) {
+      currentUser.favorites = [];
+    }
+    currentUser.favorites.push(itemId);
+
+    console.log('Item added to favorites successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Error adding to favorites:', error);
+    return { success: false, message: 'Error adding to favorites' };
+  }
+});
+
+// Remove item from customer's favorites
+ipcMain.handle('remove-from-favorites', async (_, itemId: string) => {
+  try {
+    await checkConnection();
+    
+    if (!currentUser) {
+      return { success: false, message: 'No user logged in' };
+    }
+
+    await customerCollection?.updateOne(
+      { email: currentUser.email },
+      { $pull: { favorites: itemId } }
+    );
+
+    // Update current user object
+    if (currentUser.favorites) {
+      currentUser.favorites = currentUser.favorites.filter((fav: string) => fav !== itemId);
+    }
+
+    console.log('Item removed from favorites successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Error removing from favorites:', error);
+    return { success: false, message: 'Error removing from favorites' };
+  }
+});
+
+// Get customer's favorite items with full item details
+ipcMain.handle('get-customer-favorites', async (_) => {
+  try {
+    await checkConnection();
+    
+    if (!currentUser || !currentUser.favorites || currentUser.favorites.length === 0) {
+      return [];
+    }
+
+    let favoriteItems: Item[] = [];
+    
+    for (const itemId of currentUser.favorites) {
+      if (!ObjectId.isValid(itemId)) {
+        console.warn(`Invalid itemId in favorites: ${itemId}`);
+        continue;
+      }
+
+      const actualItemObject = await itemCollection?.findOne({
+        _id: ObjectId.createFromHexString(itemId)
+      });
+      
+      if (actualItemObject) {
+        const formattedItem = {
+          ...actualItemObject,
+          id: actualItemObject._id.toHexString(),
+          img: {
+            mime: actualItemObject.img.mime, 
+            data: actualItemObject.img.data.toString('base64')
+          }
+        };
+        
+        favoriteItems.push(formattedItem);
+      } else {
+        console.warn(`Favorite item not found for id: ${itemId}`);
+      }
+    }
+
+    return favoriteItems;
+  } catch (error) {
+    console.error('Error fetching customer favorites:', error);
+    return [];
+  }
+});
+
+// Check if item is in favorites
+ipcMain.handle('is-item-favorited', async (_, itemId: string) => {
+  try {
+    if (!currentUser || !currentUser.favorites) {
+      return false;
+    }
+    
+    return currentUser.favorites.includes(itemId);
+  } catch (error) {
+    console.error('Error checking if item is favorited:', error);
+    return false;
+  }
+});
