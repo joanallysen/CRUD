@@ -306,6 +306,8 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
 })
 
 let currentUser : any; // can be customer or admin
+
+// todo, haven't used yet
 ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
   try{
     await checkConnection();
@@ -413,6 +415,38 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
     return [];
   }
 })
+
+ipcMain.handle('update-item', async(_, id: string, newItem : Item) => {
+  try {
+    await checkConnection();
+
+    if (!ObjectId.isValid(id)) {
+      return { success: false, message: 'Invalid item id' };
+    }
+
+    const newItemBackend: Item = {
+      ...newItem,
+      img: {
+        mime: newItem.img.mime,
+        data: typeof newItem.img.data === 'string' ? Buffer.from(newItem.img.data, 'base64') : newItem.img.data
+      }
+    };
+
+    const result = await itemCollection?.updateOne(
+      { _id: ObjectId.createFromHexString(id) },
+      { $set: newItemBackend }
+    );
+
+    if (result && result.modifiedCount > 0) {
+      return { success: true };
+    } else {
+      return { success: false, message: 'No item updated' };
+    }
+  } catch (error) {
+    console.error('Error updating item:', error);
+    return { success: false, message: 'Error updating item' };
+  }
+});
 
 ipcMain.handle('get-customer-cart', async (_) => {
   try {

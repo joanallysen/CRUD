@@ -33,7 +33,13 @@ export default function ItemMenu(
             
             {/* Make sure item is loaded first */}
             <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
-            <div className="scrollbar-custom grid grid-cols-4 gap-5 overflow-y-auto">
+            <div
+                className="scrollbar-custom grid gap-5 overflow-y-auto"
+                style={{
+                    height: "500px",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))"
+                }}
+            >
         
             {/* Card */}
             {sortedItems?.map((item) => {

@@ -1,0 +1,41 @@
+import React from 'react'
+import { Item } from '../../../types/item'
+import CartItem from './CartItem'
+import PaymentSummary from './PaymentSummary'
+
+type CustomerSection = 'Ordering' | 'Summary' | 'Payment' | 'Favorite' | 'History'
+
+export default function OrderSummary({
+  cartMap,
+  onIncrease,
+  onDecrease,
+  onRemove,
+  onChangeSection
+}: {
+  cartMap: Map<string, {item: Item, amount: number}>
+  onIncrease: (id: string) => void
+  onDecrease: (id: string) => void
+  onRemove: (id: string) => void
+  onChangeSection: (section: CustomerSection) => void
+}): React.JSX.Element {
+  return (
+    <div className="grid grid-cols-[3fr_1fr] gap-4 h-full">
+      <div className="flex flex-col p-6">
+        <h3 className="mb-2 font-bold">Order Summary</h3>
+        {Array.from(cartMap.values()).map((cart, idx) => (
+            <div className="mb-2">
+            <CartItem
+              key={cart.item.id || idx}
+              cart={cart}
+              onIncrease={onIncrease}
+              onDecrease={onDecrease}
+              onRemove={onRemove}
+            />
+            </div>
+
+        ))}
+      </div>
+      <PaymentSummary onChangeSection={onChangeSection} cartMap={cartMap}/>
+    </div>
+  )
+}

@@ -31,7 +31,11 @@ export default function Cart({
     let subTotalInt = 0;
     
     cartMap.forEach((cart) =>{
-        subTotalInt += Math.round(cart.item.price * 100) * cart.amount;
+        const itemPrice = cart.item.discount > 0 
+        ? cart.item.price * (cart.item.discount / 100)
+        : cart.item.price;
+
+        subTotalInt += Math.round(itemPrice * 100) * cart.amount;
     })
 
     console.log('cart is called, sub total int:', subTotalInt);
@@ -85,19 +89,26 @@ export default function Cart({
                     })}
                 </div>
 
-                <div className='flex justify-center text-center flex-col'>
-                    <h5 className='font-bold'>Payment Summary</h5>
-                    <div className='grid grid-cols-2 gap-2 mt-4'>
-                        <p className='text-left'>Sub Total</p>
-                        <p className='text-right'>${subTotal}</p>
-                        <p className='text-left'>GST </p>
-                        <p className='text-right'>${tax}</p>
-                        <p className='text-left mt-4'>Total</p>
-                        <p className ='text-right mt-4'> ${priceAfterTax}</p>
-                    </div>
+                <div className='space-y-4'>
+                        <div className='flex justify-between items-center py-2'>
+                            <span className='text-gray-300'>Sub Total</span>
+                            <span className='font-semibold'>${subTotal}</span>
+                        </div>
+
+                        <div className='flex justify-between items-center py-2'>
+                            <span className='text-gray-300'>GST</span>
+                            <span className='font-semibold'>${tax}</span>
+                        </div>
+                        
+                        <hr className='border-gray-700 my-4' />
+                        
+                        <div className='flex justify-between items-center py-2'>
+                            <span className='text-lg font-bold'>Total</span>
+                            <span className='text-2xl font-bold text-primary-400'>${priceAfterTax}</span>
+                        </div>
                     <button 
                         onClick={handleCheckout}
-                        className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-3 rounded-xl transition-colors mt-4'
+                        className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-3 rounded-xl transition-colors mt-4 cursor-pointer'
                     >Go To Checkout</button>
                 </div>
             </div>
