@@ -139,11 +139,11 @@ p, button { font-size: 1rem; } /* 16px */
 
 @layer components{
   .input {
-    @apply w-full px-4 py-3 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors;
+    @apply w-full px-4 py-3 mb-4 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors;
   }
 
   .button {
-    @apply w-50 rounded-full px-6 py-3 font-medium text-gray-800 transition-all duration-150 ease-in-out cursor-pointer hover:w-70;
+    @apply bg-white w-50 rounded-full px-6 py-3 text-black transition-all duration-150 ease-in-out cursor-pointer hover:w-70 block mx-auto;
   }
 }
 

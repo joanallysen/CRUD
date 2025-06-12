@@ -12,8 +12,15 @@ const useItems = () => {
   const [itemMenuTitle, setItemMenuTitle] = useState<string>('All Items')
   const categoryAndItem = useRef<Map<string, Item[]>>(new Map())
 
+  // refresh admin view after adding/updating/removing
+  const [currentCategory, setCurrentCategory] = useState<string>('');
+  const [currentSearch, setCurrentSearch] = useState<string>('');
+
   const handleGetItems = useCallback(async (category: string, search: string) => {
-    // Handle search
+    setCurrentCategory(category);
+    setCurrentSearch(search);
+
+    // Handle search if there's any
     if (search !== '') {
       const regex = new RegExp(search, 'i')
       const itemsMatched: Item[] = []
@@ -59,7 +66,7 @@ const useItems = () => {
       return
     }
 
-    // Fetch new category
+    // Fetch new category if new category are made
     const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
     categoryAndItem.current.set(category, fetchedItems)
     setItems(fetchedItems)
@@ -68,13 +75,77 @@ const useItems = () => {
 
   const isLoading = useMemo(() => categoryAndItem.current.size <= 0, [categoryAndItem.current.size])
 
+  const refreshCurrentView = useCallback(() => {
+    if (currentSearch !== '') {
+      // Re-run search
+      const regex = new RegExp(currentSearch, 'i')
+      const itemsMatched: Item[] = []
+      
+      categoryAndItem.current.forEach((items: Item[]) => {
+        items.forEach((item) => {
+          if (regex.test(item.name)) {
+            itemsMatched.push(item)
+          }
+        })
+      })
+      
+      setItems(itemsMatched)
+    } else if (currentCategory === '') {
+      // Show all items
+      const allItems = Array.from(categoryAndItem.current.values()).flat()
+      setItems(allItems)
+    } else {
+      // Show specific category
+      setItems(categoryAndItem.current.get(currentCategory) ?? [])
+    }
+  }, [currentCategory, currentSearch])
+
+
+  // add to the cache
+  const addItemCache = useCallback((item: Item) => {
+    if (categoryAndItem.current.has(item.category)) {
+      categoryAndItem.current.get(item.category)!.push(item);
+    } else {
+      categoryAndItem.current.set(item.category, [item]);
+      setCategories(prev =>
+        prev.includes(item.category) ? prev : [...prev, item.category]
+      );
+    }
+    refreshCurrentView();
+  }, [refreshCurrentView]);
+
+  // update an item in the cache
+  const updateItemCache = useCallback((updatedItem: Item) => {
+    if (categoryAndItem.current.has(updatedItem.category)) {
+      const items = categoryAndItem.current.get(updatedItem.category)!;
+      const index = items.findIndex(item => item.id === updatedItem.id);
+      if (index !== -1) {
+        items[index] = updatedItem;
+        categoryAndItem.current.set(updatedItem.category, [...items]);
+      }
+    }
+    refreshCurrentView();
+  }, [refreshCurrentView]);
+
+  // remove an item from the cache
+  const removeItemCache = useCallback((itemId: string, category: string) => {
+    if (categoryAndItem.current.has(category)) {
+      const item = categoryAndItem.current.get(category)!.filter(item => item.id !== itemId);
+      categoryAndItem.current.set(category, item);
+    }
+    refreshCurrentView();
+  }, [refreshCurrentView]);
+
+
+  
   return {
     items,
     categories,
     setCategories,
     itemMenuTitle,
     handleGetItems,
-    isLoading
+    isLoading,
+    addItemCache, updateItemCache, removeItemCache
   }
 }
 
@@ -102,10 +173,6 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         loadData()
       }, [])
 
-    // save item cache, after updated, item inside this Category and Item change,
-    // after admin has exited the section, item will then be updated to the databse? 
-    // update to database directly, using this id, but don't fetch the data again only change in the cache
-
     const itemOperations = useItems()
 
     const renderSectionContent = () =>{
@@ -126,10 +193,13 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
                             />
                             </div>
                             <div className="p-6 overflow-y-auto bg-gray-960">
-                            <SearchBar onGetItems={itemOperations.handleGetItems} />
                             <MenuEditor
                                 items={itemOperations.items}
                                 itemMenuTitle={itemOperations.itemMenuTitle}
+                                onGetItems={itemOperations.handleGetItems}
+                                onAddItemCache={itemOperations.addItemCache}
+                                onUpdateItemCache={itemOperations.updateItemCache}
+                                onRemoveItemCache={itemOperations.removeItemCache}
                             />
                             </div>
                         </div>

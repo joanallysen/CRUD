@@ -1,6 +1,7 @@
-import {useState, useEffect} from 'react';
+import {useState, useCallback} from 'react';
 
 import {Item} from '../../../types/item'
+import Notification from './Notification';
 export default function Favorites(
     {favoriteItems, onAddToCart, onAddToFavorites, onRemoveFromFavorites, isItemFavorited }:
     {
@@ -12,24 +13,19 @@ export default function Favorites(
     }
 ) : React.JSX.Element {
 
-    const [showNotification, setShowNotification] = useState(false);
-    const [notificationItem, setNotificationItem] = useState('');
+    const [showNotification, setShowNotification] = useState<boolean>(false);
+    const [notificationMessage, setNotificationMessage] = useState<string>('');
 
     const handleAddToCart = (item) => {
         onAddToCart?.(item);
-        setNotificationItem(item.name);
+        setNotificationMessage('item.name' + ' added to cart!');
         setShowNotification(true);
     };
 
-    useEffect(() => {
-        if (showNotification) {
-        const timer = setTimeout(() => {
-            setShowNotification(false);
-        }, 2000);
-        return () => clearTimeout(timer);
-        }
-    }, [showNotification]);
-
+   const deactivateNotification = useCallback(() =>{
+    setNotificationMessage('');
+    setShowNotification(false);
+   }, [])
 
   return (
     <div className="p-6 overflow-y-auto bg-gray-900 h-screen">
@@ -115,14 +111,8 @@ export default function Favorites(
         </div>
       )}
 
-            {showNotification && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-black px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-bounce z-50">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 1.5M7 13l1.5 1.5M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6" />
-          </svg>
-          <span className="font-medium">{notificationItem} added to cart!</span>
-        </div>
-      )}
+
+            {showNotification && ( <Notification notificationMessage={notificationMessage} onNotificationEnd={deactivateNotification} />)}
     </div>
 
 

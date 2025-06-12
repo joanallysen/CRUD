@@ -1,27 +1,44 @@
 import { useState, useMemo } from 'react';
 import {Item} from '../../../types/item'
+import SearchBar from './SearchBar';
+import AddItemPanel from './AddItemPanel';
 
 export default function MenuEditor(
-    {items,  itemMenuTitle} :
+    {items,  itemMenuTitle, onGetItems, onAddItemCache, onUpdateItemCache, onRemoveItemCache} :
     {
         items:Item[];
         itemMenuTitle: string;
+        onGetItems: (category: string, search: string) => void; 
+        onAddItemCache: (item: Item) => void;
+        onUpdateItemCache: (updatedItem: Item) => void;
+        onRemoveItemCache: (itemId: string, category: string) => void;
     }
 ) : React.JSX.Element{
 
-    const handleEdit = (itemId: string) => ({
-        // asda
-        // return(
-        //     EditItemCard
-        // )
-    })
+    const [editPanelOpen, setEditPanelOpen] = useState<boolean>(false);
+
+    const handleEdit = (itemId: string) => {
+        // activate edit panel, and items.map be small
+        if(editPanelOpen){
+            setEditPanelOpen(false);
+            return;
+        }
+        setEditPanelOpen(true);
+    }
+
+    const closeEditPanel = () => {
+        setEditPanelOpen(false);
+    }
     
     return(
         <>
             {/* Make sure item is loaded first */}
+            <div className={`${editPanelOpen ? 'w-[75%]' : 'w-[90%]'}  `}>
+                <SearchBar onGetItems={onGetItems}></SearchBar>
+            </div>
             <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
             <div
-                className="scrollbar-custom grid gap-5 overflow-y-auto w-full justify-center"
+                className={`scrollbar-custom grid gap-5 overflow-y-auto ${editPanelOpen ? 'w-[80%]' : 'w-full'}`}
                 style={{
                     gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 320px))",
                 }}
@@ -60,6 +77,9 @@ export default function MenuEditor(
                 );
             })}
 
+            </div>
+            <div className={`fixed top-0 bottom-0 right-0 w-110 bg-accent-50 shadow-lg transition-transform duration-300 z-50 ${editPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ overflowY: 'auto' }}>
+                <AddItemPanel onClosePanel={closeEditPanel} onAddItemCache={onAddItemCache}></AddItemPanel>
             </div>
         </>
     )

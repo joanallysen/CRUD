@@ -28,16 +28,23 @@ export default function ItemMenu(
         });
     }, [items, isItemFavorited]);
 
+    const sortedByPopularity = useMemo(() => {
+        return [...items].sort((a, b) =>{
+            if (a.popularity > b.popularity) return -1;
+            if (a.popularity < b.popularity) return 1;
+            return 0;
+        });
+    }, [items])
+
     return(
         <>
             
             {/* Make sure item is loaded first */}
             <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
             <div
-                className="scrollbar-custom grid gap-5 overflow-y-auto"
+                className={`scrollbar-custom grid gap-5 overflow-y-auto w-full}`}
                 style={{
-                    height: "500px",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 1fr))"
+                    gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 320px))",
                 }}
             >
         
