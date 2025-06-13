@@ -67,7 +67,7 @@ export default function ItemMenu(
                             {item.discount > 0 ?
                             <>
                                 <h3 className= "line-through text-lg">${item.price}</h3>    
-                                <h3 className="text-red-600">${(item.price * (item.discount/100)).toFixed(2)}</h3>
+                                <h3 className="text-red-600">${(item.price -(item.price * (item.discount/100))).toFixed(2)}</h3>
                             </>   
                             : <h3>${item.price}</h3>}
                             <div className="flex-1"></div>

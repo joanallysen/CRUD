@@ -416,24 +416,25 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
   }
 })
 
-ipcMain.handle('update-item', async(_, id: string, newItem : Item) => {
+ipcMain.handle('update-item', async(_, updatedItem : Item) => {
   try {
+    console.log('called update', updatedItem);
     await checkConnection();
 
-    if (!ObjectId.isValid(id)) {
+    if (!ObjectId.isValid(updatedItem.id!)) {
       return { success: false, message: 'Invalid item id' };
     }
 
     const newItemBackend: Item = {
-      ...newItem,
+      ...updatedItem,
       img: {
-        mime: newItem.img.mime,
-        data: typeof newItem.img.data === 'string' ? Buffer.from(newItem.img.data, 'base64') : newItem.img.data
+        mime: updatedItem.img.mime,
+        data: typeof updatedItem.img.data === 'string' ? Buffer.from(updatedItem.img.data, 'base64') : updatedItem.img.data
       }
     };
 
     const result = await itemCollection?.updateOne(
-      { _id: ObjectId.createFromHexString(id) },
+      { _id: ObjectId.createFromHexString(updatedItem.id!) },
       { $set: newItemBackend }
     );
 
@@ -445,6 +446,29 @@ ipcMain.handle('update-item', async(_, id: string, newItem : Item) => {
   } catch (error) {
     console.error('Error updating item:', error);
     return { success: false, message: 'Error updating item' };
+  }
+});
+
+// Remove item by id
+ipcMain.handle('remove-item', async (_, itemId: string) => {
+  try {
+    await checkConnection();
+
+    if (!ObjectId.isValid(itemId)) {
+      return { success: false, message: 'Invalid item id' };
+    }
+
+    const result = await itemCollection?.deleteOne({ _id: ObjectId.createFromHexString(itemId) });
+
+    if (result && result.deletedCount > 0) {
+      console.log(`Item with id ${itemId} removed successfully.`);
+      return { success: true };
+    } else {
+      return { success: false, message: 'No item removed' };
+    }
+  } catch (error) {
+    console.error('Error removing item:', error);
+    return { success: false, message: 'Error removing item' };
   }
 });
 

@@ -158,6 +158,8 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         console.log('called changing to: ', adminSection)
     }
 
+    const itemOperations = useItems()
+
     useEffect(() => {
         const loadData = async () => {
           try {
@@ -173,7 +175,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         loadData()
       }, [])
 
-    const itemOperations = useItems()
+
 
     const renderSectionContent = () =>{
         switch(currentSection){

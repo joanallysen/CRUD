@@ -1,33 +1,53 @@
-import {useCallback, useRef, useState} from 'react'
-import {Item} from '../../../types/item'
-import Notification from './Notification';
+import { Item } from 'src/types/item'
+import {useState, useCallback, useRef, useEffect} from 'react'
+import Notification from '../components/Notification'
 
-export default function EditItemPanel(
-    {onClosePanel, onAddItemCache}:
+
+export default function UpdateItemPanel(
+    {onClosePanel, onUpdateItemCache, currentItem}:
     {
         onClosePanel: () => void;
-        onAddItemCache: (item: Item) => void;
+        onUpdateItemCache: (updatedItem: Item) => void;
+        currentItem: Item
     }
+) : React.JSX.Element{
+    const [imgSrc, setImgSrc] = useState<string>(`data:${currentItem.img.mime};base64,${currentItem.img.data}`);
+    const [imgData, setImgData] = useState<{mime: string, data:string}>({
+        mime: currentItem.img.mime,
+        data: typeof currentItem.img.data === 'string'
+            ? currentItem.img.data
+            : currentItem.img.data
+                ? Buffer.isBuffer(currentItem.img.data)
+                    ? currentItem.img.data.toString('base64')
+                    : String(currentItem.img.data)
+                : ''
+    });
 
-): React.JSX.Element{
-    const [imgSrc, setImgSrc] = useState<string>('');
-    const [imgData, setImgData] = useState<{mime: string; data: string}>({mime: '', data: ''});
-    // Buffer is undefined on frontend
     const [showNotification, setShowNotification] = useState<boolean>(false);
     const [notificationMessage, setNotificationMessage] = useState<string>('');
+
     const deactivateNotification = useCallback(() =>{
         setNotificationMessage('');
         setShowNotification(false);
     }, [])
 
-    const nameRef = useRef<HTMLInputElement>(null);
-    const descRef = useRef<HTMLInputElement>(null);
-    const priceRef = useRef<HTMLInputElement>(null);
-    const categoryRef = useRef<HTMLInputElement>(null);
-    const discountRef = useRef<HTMLInputElement>(null);
-    const availableRef = useRef<HTMLInputElement>(null);
+    const handleUpdateItem = () =>{
+        const updatedItem : Item = {
+            id: currentItem.id,
+            name: name,
+            description: description,
+            price: parseFloat(price),
+            img: imgData,
+            category: category,
+            discount: parseFloat(discount), 
+            available: available,
+            popularity: currentItem.popularity,
+            modifiedAt: new Date
+        }
+        onUpdateItemCache(updatedItem)
+        window.electron.ipcRenderer.invoke('update-item', updatedItem)
+    }
 
-    
     const chooseImage = async () =>{
         const result = await window.electron.ipcRenderer.invoke('choose-image');
         if (result){
@@ -37,40 +57,37 @@ export default function EditItemPanel(
         }
     }
 
-    const handleAddItem = async () =>{
-        console.log(`adding, adminpage.tsx handle add item`);
-        
-        const name = nameRef.current?.value.trim() ?? '';
-        setNotificationMessage(`${name} has been added to the menu!`);
-        setShowNotification(true);
+    // useState for easier intial value
+    const [name, setName] = useState(currentItem.name || '');
+    const [description, setDescription] = useState(currentItem.description || '');
+    const [price, setPrice] = useState(String(currentItem.price) || '');
+    const [category, setCategory] = useState(currentItem.category || '');
+    const [discount, setDiscount] = useState(String(currentItem.discount ?? '') || '');
+    const [available, setAvailable] = useState(!!currentItem.available);
 
-        const desc = descRef.current?.value.trim() ?? '';
-        const price = parseFloat(priceRef.current?.value.trim() ?? '0');
-        const category = categoryRef.current?.value.trim() ?? '';
-        const discount = parseFloat(discountRef.current?.value.trim() ?? '0');
-        const available = availableRef.current?.checked ?? false;
-
-        const item : Item = {
-            name: name,
-            description: desc,
-            price: price,
-            img: imgData,
-            category: category,
-            discount: discount,
-            available: available,
-            popularity: 0,
-            modifiedAt: new Date
-        };
-        // handle to the cloud
-        await window.electron.ipcRenderer.invoke('add-item', item);
-        // handle temp cache
-        onAddItemCache(item);
-    }
-
+    useEffect(() => {
+        setName(currentItem.name || '');
+        setDescription(currentItem.description || '');
+        setPrice(String(currentItem.price) || '');
+        setCategory(currentItem.category || '');
+        setDiscount(String(currentItem.discount ?? '') || '');
+        setAvailable(!!currentItem.available);
+        setImgSrc(`data:${currentItem.img.mime};base64,${currentItem.img.data}`);
+        setImgData({
+            mime: currentItem.img.mime,
+            data: typeof currentItem.img.data === 'string'
+                ? currentItem.img.data
+                : currentItem.img.data
+                    ? Buffer.isBuffer(currentItem.img.data)
+                        ? currentItem.img.data.toString('base64')
+                        : String(currentItem.img.data)
+                    : ''
+        });
+    }, [currentItem]);
 
     return(
         <div className="flex m-auto flex-col w-full p-6 relative">
-        <h2 className='p-6 font-bold text-center'>Add New Item</h2>
+            <h2 className='p-6 font-bold text-center'>Add New Item</h2>
 
         <label className="block text-white mb-2 text-left">Item image </label>
 
@@ -104,33 +121,22 @@ export default function EditItemPanel(
 
             {/* Todo form required is pretty nmuch useless */}
             <label className="block text-white mb-2 text-left">Name </label>
-            <input  name="name" type="text" placeholder="Name" className={`input`} ref={nameRef}/>
+            <input className='input' value={name} onChange={(e) => setName(e.target.value)} />
             <label className="block text-white mb-2 text-left">Description </label>
-            <input  name="name" type="text" placeholder="Description" className={`input`} ref={descRef}/>
+            <input className='input' value={description} onChange={(e) => setDescription(e.target.value)} />
             <label className="block text-white mb-2 text-left">Price </label>
-            <input  name="category" type="number" placeholder="5" className={`input`} ref={priceRef}/>
-
-            <label className="block text-white mb-2 text-left"> Category </label>
-            <input  name="name" type="text" placeholder="Food" className={`input`} ref={categoryRef}/>
-
+            <input className='input' value={price} onChange={(e) => setPrice(e.target.value)} />
+            <label className="block text-white mb-2 text-left">Category </label>
+            <input className='input' value={category} onChange={(e) => setCategory(e.target.value)} />
             <label className="block text-white mb-2 text-left">Discount </label>
-            <input name="name" type="number" placeholder="%" className={'input mb-8'} ref={discountRef}/>
+            <input className='input' value={discount} onChange={(e) => setDiscount(e.target.value)} />
 
             <div className="flex items-center mb-8 justify-between">
-                
-                <label  className="text-white select-none cursor-pointer">
-                    Available
-                </label>
-
-                <input
-                    name="available"
-                    type="checkbox"
-                    className="w-6 h-6 border-2 border-white rounded-full checked:bg-green cursor-pointer transition-all"
-                    ref={availableRef}
-                />
+                <label className="block text-white mb-2 text-left">Availability </label>
+            <input className='w-6 h-6 border-2 border-white rounded-full checked:bg-green cursor-pointer transition-all' checked={available} onChange={(e) => setAvailable(e.target.checked)} type="checkbox" />
             </div>
-
-            <button className='button' onClick={handleAddItem}>Submit</button>
+            
+            <button className='button' onClick={handleUpdateItem}>Submit</button>
 
             
             
