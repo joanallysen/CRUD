@@ -9,7 +9,7 @@ import CustomerSidebar from '@renderer/components/CustomerSidebar'
 import Favorites from '@renderer/components/Favorites'
 import OrderSummary from '@renderer/components/OrderSummary'
 import PaymentSection from '@renderer/components/PaymentSection'
-import OrderHistory from '@renderer/components/OrderHistory'
+import CustomerHistory from '@renderer/components/CustomerHistory'
 
 
 const useCartOperations = () => {
@@ -52,6 +52,10 @@ const useCartOperations = () => {
       }
       return newCart
     })
+  }, [])
+
+  const clearCart = useCallback(() =>{
+    setCartMap(new Map())
   }, [])
 
   const increaseQuantity = useCallback((id: string) => updateQuantity(id, 1), [updateQuantity])
@@ -291,7 +295,10 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         />
 
       case 'Payment':
-        return <PaymentSection onChangeSection={handleChangeSection} />
+        return <PaymentSection 
+          onChangeSection={handleChangeSection} 
+          cartMap={cartOperations.cartMap}
+        />
 
       case 'Favorite':
         return (
@@ -305,7 +312,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         )
 
       case 'History':
-        return <OrderHistory onChangeSection={handleChangeSection} />
+        return <CustomerHistory onChangeSection={handleChangeSection} />
 
       default:
         return null

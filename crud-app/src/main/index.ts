@@ -109,6 +109,7 @@ import { Document } from 'mongodb';
 let customerCollection: Collection<Customer> | null = null;
 let adminCollection: Collection<Admin> | null = null;
 let itemCollection: Collection<Item> | null = null;
+let orderCollection: Collection<Order> | null = null;
 
 async function connectToMongoDB(){
   try{
@@ -120,6 +121,7 @@ async function connectToMongoDB(){
     customerCollection = db?.collection('customers');
     adminCollection = db?.collection('admins');
     itemCollection = db?.collection('items');
+    orderCollection = db?.collection('orders');
 
     return true;
   } catch (error){
@@ -136,7 +138,7 @@ async function hashPassword(password: string){
 }
 
 async function checkConnection(){
-  if (!db || !customerCollection || !adminCollection || !itemCollection){
+  if (!db || !customerCollection || !adminCollection || !itemCollection || !orderCollection){
     console.log('database or collection is not connected, connecting...');
       const connected = await connectToMongoDB();
       if (!connected) {
@@ -174,6 +176,7 @@ ipcMain.handle('choose-image', async() =>{
 import {CartItem, Customer} from '../types/customer'
 import {Admin} from '../types/admin'
 import {Item} from '../types/item'
+import { Order } from '../types/order'
 
 
 ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
@@ -219,9 +222,10 @@ ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
       password: password,
       name: 'User',
       favorites: [],
-      history: [],
+      orderHistory: [],
       cart: [],
-      status: 'Not Here'
+      status: 'Inactive',
+      paymentMethod: 'Unknown',
     }
 
     await customerCollection?.insertOne(customer);
@@ -547,7 +551,6 @@ ipcMain.handle('get-unique-category', async(_) =>{
 
   } catch(error) {console.log('Error get-unique-category index.ts: ', error); return {};}
 })
-// Add these new IPC handlers to your main.ts file
 
 // Add item to customer's favorites
 ipcMain.handle('add-to-favorites', async (_, itemId: string) => {
@@ -665,5 +668,168 @@ ipcMain.handle('is-item-favorited', async (_, itemId: string) => {
   } catch (error) {
     console.error('Error checking if item is favorited:', error);
     return false;
+  }
+});
+
+ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymentMethod: 'Cash' | 'Card' }) => {
+  try {
+    await checkConnection();
+
+    if (!currentUser) {
+      return { success: false, message: 'No user logged in' };
+    }
+
+    // Calculate total from cart items
+    let total = 0;
+    for (const cartItem of orderData.cartItems) {
+      const item = await itemCollection?.findOne({ _id: ObjectId.createFromHexString(cartItem.itemId) });
+      if (item) {
+        total += item.price * cartItem.amount;
+      }
+    }
+
+    const order: Order = {
+      date: new Date(),
+      customerEmail: currentUser.email,
+      customerName: currentUser.name,
+      items: orderData.cartItems,
+      orderStatus: 'Processing',
+      paymentMethod: orderData.paymentMethod,
+      totalPrice: total
+    };
+
+    // Insert order
+    const result = await orderCollection?.insertOne(order);
+    
+    if (result?.insertedId) {
+      // Add order ID to customer's order history
+      await customerCollection?.updateOne(
+        { email: currentUser.email },
+        { $push: { orderHistory: result.insertedId.toHexString() } }
+      );
+
+      // Clear customer's cart
+      await customerCollection?.updateOne(
+        { email: currentUser.email },
+        { $set: { cart: [] } }
+      );
+
+      // Update current user
+      currentUser.cart = [];
+      if (!currentUser.orderHistory) {
+        currentUser.orderHistory = [];
+      }
+      currentUser.orderHistory.push(result.insertedId.toHexString());
+
+      console.log("Successfully added a new order.");
+      return { success: true };
+    }
+
+    return { success: false, message: 'Failed to create order' };
+  } catch (error) {
+    console.error('Error adding order:', error);
+    return { success: false, message: 'Error adding order' };
+  }
+});
+
+
+ipcMain.handle('get-customer-orders', async (_) => {
+  try {
+    await checkConnection();
+
+    if (!currentUser) {
+      return [];
+    }
+
+    const orders = await orderCollection?.find({ customerEmail: currentUser.email })
+      .sort({ date: -1 }) // Most recent first
+      .toArray() as Order[];
+
+    // Format orders for frontend
+    const formattedOrders = await Promise.all(orders.map(async (order) => {
+      // Get full item details for each cart item
+      const itemsWithDetails = await Promise.all(order.items.map(async (cartItem) => {
+        const item = await itemCollection?.findOne({ _id: ObjectId.createFromHexString(cartItem.itemId) });
+        if (item) {
+          return {
+            ...cartItem,
+            itemDetails: {
+              ...item,
+              id: item._id?.toHexString(),
+              img: {
+                mime: item.img.mime,
+                data: item.img.data.toString('base64')
+              }
+            }
+          };
+        }
+        return cartItem;
+      }));
+
+      return {
+        ...order,
+        id: order._id?.toHexString(),
+        items: itemsWithDetails
+      };
+    }));
+
+    return formattedOrders;
+  } catch (error) {
+    console.error('Error fetching customer orders:', error);
+    return [];
+  }
+});
+
+
+ipcMain.handle('reorder-items', async (_, orderId: string) => {
+  try {
+    await checkConnection();
+
+    if (!ObjectId.isValid(orderId)) {
+      return { success: false, message: 'Invalid order ID' };
+    }
+
+    const order = await orderCollection?.findOne({ _id: ObjectId.createFromHexString(orderId) });
+    
+    if (!order) {
+      return { success: false, message: 'Order not found' };
+    }
+
+    // Add order items back to current user's cart
+    const currentCart = currentUser.cart || [];
+    
+    // Merge with existing cart
+    const cartMap = new Map();
+    
+    // Add existing cart items
+    currentCart.forEach((item: CartItem) => {
+      cartMap.set(item.itemId, item.amount);
+    });
+    
+    // Add reorder items
+    order.items.forEach((item: CartItem) => {
+      const existingAmount = cartMap.get(item.itemId) || 0;
+      cartMap.set(item.itemId, existingAmount + item.amount);
+    });
+    
+    // Convert back to CartItem array
+    const newCart: CartItem[] = Array.from(cartMap.entries()).map(([itemId, amount]) => ({
+      itemId,
+      amount
+    }));
+
+    // Update customer's cart in database
+    await customerCollection?.updateOne(
+      { email: currentUser.email },
+      { $set: { cart: newCart } }
+    );
+
+    // Update current user
+    currentUser.cart = newCart;
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error reordering items:', error);
+    return { success: false, message: 'Error reordering items' };
   }
 });

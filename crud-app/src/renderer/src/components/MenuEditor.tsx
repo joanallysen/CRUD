@@ -3,6 +3,7 @@ import {Item} from '../../../types/item'
 import SearchBar from './SearchBar';
 import AddItemPanel from './AddItemPanel';
 import UpdateItemPanel from './UpdateItemPanel';
+import ModalDialog from './ModalDialog';
 
 export default function MenuEditor(
     {items,  itemMenuTitle, onGetItems, onAddItemCache, onUpdateItemCache, onRemoveItemCache} :
@@ -19,7 +20,11 @@ export default function MenuEditor(
     const [editPanelOpen, setEditPanelOpen] = useState<boolean>(false);
     const [addPanelOpen, setAddPanelOpen] = useState<boolean>(false);
 
+    // UI ish
+    const [deleteConfirmation, setDeleteConfirmation] = useState<boolean>(false);
+
     const handleEdit = (item: Item) => {
+        setAddPanelOpen(false);
         if(editPanelOpen && currentEditedItem?.id === item.id){
             setEditPanelOpen(false);
             return;
@@ -29,7 +34,9 @@ export default function MenuEditor(
         setCurrentEditedItem(item);
     }
 
+    // todo finsih this
     const handleAdd = () => {
+        setEditPanelOpen(false);
         if(addPanelOpen){
             setAddPanelOpen(false);
             return;
@@ -38,6 +45,7 @@ export default function MenuEditor(
     }
 
     const handleRemove = (itemId: string, category: string) =>{
+        setDeleteConfirmation(false);
         onRemoveItemCache(itemId, category);
         window.electron.ipcRenderer.invoke('remove-item', itemId);
     }
@@ -45,24 +53,55 @@ export default function MenuEditor(
     const closeEditPanel = () => {
         setEditPanelOpen(false);
     }
+
+    const closeAddPanel = () =>{
+        setAddPanelOpen(false);
+    }
     
     return(
         <>
             {/* Make sure item is loaded first */}
-            <div className={`${editPanelOpen ? 'w-[75%]' : 'w-[90%]'}  `}>
+            <div className={`${editPanelOpen || addPanelOpen ? 'w-[75%]' : 'w-[90%]'}  `}>
                 <SearchBar onGetItems={onGetItems}></SearchBar>
             </div>
             <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
             <div
-                className={`scrollbar-custom grid gap-5 overflow-y-auto ${editPanelOpen ? 'w-[80%]' : 'w-full'}`}
+                className={`scrollbar-custom grid gap-5 overflow-y-auto ${editPanelOpen || addPanelOpen ? 'w-[80%]' : 'w-full'}`}
                 style={{
                     gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 320px))",
                 }}
             >
             {/* Card */}
+
+            {/* Add new item card */}
+            <div
+                className="flex flex-col items-center justify-center bg-accent-50 rounded-lg transition-transform h-120"
+            >
+                <button
+                    className="flex flex-col items-center justify-center w-full h-full focus:outline-none cursor-pointer"
+                    onClick={() => handleAdd()}
+                >
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="12" fill="#e0e7ff"/>
+                            <path d="M12 7v10M7 12h10" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"/>
+                        </svg>
+                    <span className="mt-4 font-semibold text-lg">Add New Item</span>
+                </button>
+            </div>
+
             {items?.map((item) => {
                 return (
-                    <div key={item.id} className='bg-accent-50 rounded-lg hover:scale-105 transition-transform relative'>
+                    <div key={item.id} className='bg-accent-50 rounded-lg transition-transform relative'>
+                        {/* Exclamation icon if not available */}
+                        {!item.available && (
+                            <div className="absolute top-3 right-3 z-10 group">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#fde047"/><path d="M12 7v5" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill="#b91c1c"/>
+                                </svg>
+                                <span className="absolute w-auto p-2 min-w-max -left-24 top-1/2 -translate-y-1/2 rounded-md shadow-md text-white bg-gray-900 text-sm font-medium transition-all duration-200 scale-0 origin-right group-hover:scale-100 z-[999] border border-gray-700">
+                                    Unavailable
+                                </span>
+                            </div>
+                        )}
                         <div className='w-full flex justify-center items-center overflow-hidden'>
                             <img 
                                 className='w-80 h-80 p-6 object-cover rounded-4xl pt-7' 
@@ -87,8 +126,8 @@ export default function MenuEditor(
                             <div className='flex gap-2'>
                                 <button
                                     className="bg-red-500 hover:bg-red-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors cursor-pointer" 
-                                    onClick={() => handleRemove(item.id!, item.category)}
-                                    aria-label="Delete item"
+                                    onClick={() => {setDeleteConfirmation(true); setCurrentEditedItem(item)}}
+                                    aria-label="Delete item" // aria label is useful 
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                                         <path fill="currentColor" d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"/>
@@ -109,29 +148,26 @@ export default function MenuEditor(
                     </div>  
                 );
             })}
-            {/* Add new item card */}
-            <div
-                className="flex flex-col items-center justify-center bg-accent-100 rounded-lg cursor-pointer hover:scale-105 transition-transform min-h-[22rem] min-w-[18rem] h-80"
-                onClick={() => (false)}
-            >
-                <button
-                    className="flex flex-col items-center justify-center w-full h-full focus:outline-none"
-                    onClick={() => setEditPanelOpen(false)}
-                    tabIndex={-1}
-                >
-                    <span className="text-accent-500">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="12" fill="#e0e7ff"/>
-                            <path d="M12 7v10M7 12h10" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"/>
-                        </svg>
-                    </span>
-                    <span className="mt-4 text-accent-500 font-semibold text-lg">Add New Item</span>
-                </button>
-            </div>
+            
 
             </div>
             <div className={`fixed top-0 bottom-0 right-0 w-110 bg-accent-50 shadow-lg transition-transform duration-300 z-50 ${editPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ overflowY: 'auto' }}>
                 {currentEditedItem && ( <UpdateItemPanel onClosePanel={closeEditPanel} onUpdateItemCache={onUpdateItemCache} currentItem={currentEditedItem}></UpdateItemPanel>)}
+            </div>
+            <div className={`fixed top-0 bottom-0 right-0 w-110 bg-accent-50 shadow-lg transition-transform duration-300 z-50 ${addPanelOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ overflowY: 'auto' }}>
+                <AddItemPanel onClosePanel={closeAddPanel} onAddItemCache={onAddItemCache} ></AddItemPanel>
+            </div>
+            <div>
+                {(deleteConfirmation && currentEditedItem) &&(
+                    <ModalDialog
+                        onContinue={() => {
+                            handleRemove(currentEditedItem.id!, currentEditedItem.category);
+                        }}
+                        onCancel={() => setDeleteConfirmation(false)}
+                        message={`Are you sure you want to delete this item?`}
+                        messageTitle='Item Deletion'
+                    />
+                )}
             </div>
 
         </>

@@ -30,7 +30,7 @@ export default function Favorites(
   return (
     <div className="p-6 overflow-y-auto bg-gray-900 h-screen">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2 pl-6">My Favorites</h2>
+        <h2 className="text-2xl font-bold mb-2 pl-6">My Favorites</h2>
         <p className="text-gray-400 pl-6">Items you've saved for later</p>
       </div>
       

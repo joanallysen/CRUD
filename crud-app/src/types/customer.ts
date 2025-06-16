@@ -1,4 +1,5 @@
 import {Item} from './item'
+import {Order} from './order'
 import {ObjectId} from 'mongodb'
 
 export interface Customer{
@@ -9,18 +10,13 @@ export interface Customer{
     name: string;
     favorites: string[];
     cart: CartItem[];
-    history: HistoryTransaction[];
-    status: string;
+    orderHistory: string[];
+    status: 'Processing' | 'Cancelled' | 'Complete' | 'Inactive';
+    paymentMethod: 'Cash' | 'Card' | 'Unknown';
 }
 
 // only have id to save room
 export interface CartItem{
     itemId: string;
     amount: number;
-}
-
-export interface HistoryTransaction {
-    items: CartItem[];
-    date?: Date;
-    total?: number;
 }
