@@ -19,7 +19,13 @@ export interface Order {
 }
 
 // cannot store multiple item due to exceeding the limit
-export interface HistoryItem{
+// similar to CartItem but have an Item inside them and used only in front end and not store in mongodb
+export interface OrderWithItemsObject extends Order{
+    items: idAmountAndItemObject[];
+}
+
+export interface idAmountAndItemObject{
     itemId: string;
     amount: number;
+    itemDetails: Item;
 }

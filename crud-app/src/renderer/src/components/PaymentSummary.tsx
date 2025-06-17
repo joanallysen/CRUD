@@ -17,7 +17,7 @@ export default function PaymentSummary({
     cartMap.forEach((cart) => {
       // Handle discounted items like in Cart component
       const itemPrice = cart.item.discount > 0 
-        ? cart.item.price * (cart.item.discount / 100)
+        ? cart.item.price - cart.item.price * (cart.item.discount / 100)
         : cart.item.price;
       
       subTotalInt += Math.round(itemPrice * 100) * cart.amount;
@@ -59,7 +59,7 @@ export default function PaymentSummary({
           
           <hr className='border-gray-700 my-4' />
           
-          <div className='flex justify-between items-center py-2'>
+          <div className='flex justify-between items-center py-2 mb-6'>
             <span className='text-lg font-bold'>Total</span>
             <span className='text-2xl font-bold text-primary-400'>${total}</span>
           </div>

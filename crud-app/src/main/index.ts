@@ -673,6 +673,7 @@ ipcMain.handle('is-item-favorited', async (_, itemId: string) => {
 
 ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymentMethod: 'Cash' | 'Card' }) => {
   try {
+    console.log(`User successfully payed by ${orderData.paymentMethod}, User buyed cart : ${orderData.cartItems}`)
     await checkConnection();
 
     if (!currentUser) {
@@ -735,6 +736,7 @@ ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymen
 
 ipcMain.handle('get-customer-orders', async (_) => {
   try {
+    console.log('Getting customer orders at get-customer-orders')
     await checkConnection();
 
     if (!currentUser) {
@@ -777,59 +779,5 @@ ipcMain.handle('get-customer-orders', async (_) => {
   } catch (error) {
     console.error('Error fetching customer orders:', error);
     return [];
-  }
-});
-
-
-ipcMain.handle('reorder-items', async (_, orderId: string) => {
-  try {
-    await checkConnection();
-
-    if (!ObjectId.isValid(orderId)) {
-      return { success: false, message: 'Invalid order ID' };
-    }
-
-    const order = await orderCollection?.findOne({ _id: ObjectId.createFromHexString(orderId) });
-    
-    if (!order) {
-      return { success: false, message: 'Order not found' };
-    }
-
-    // Add order items back to current user's cart
-    const currentCart = currentUser.cart || [];
-    
-    // Merge with existing cart
-    const cartMap = new Map();
-    
-    // Add existing cart items
-    currentCart.forEach((item: CartItem) => {
-      cartMap.set(item.itemId, item.amount);
-    });
-    
-    // Add reorder items
-    order.items.forEach((item: CartItem) => {
-      const existingAmount = cartMap.get(item.itemId) || 0;
-      cartMap.set(item.itemId, existingAmount + item.amount);
-    });
-    
-    // Convert back to CartItem array
-    const newCart: CartItem[] = Array.from(cartMap.entries()).map(([itemId, amount]) => ({
-      itemId,
-      amount
-    }));
-
-    // Update customer's cart in database
-    await customerCollection?.updateOne(
-      { email: currentUser.email },
-      { $set: { cart: newCart } }
-    );
-
-    // Update current user
-    currentUser.cart = newCart;
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error reordering items:', error);
-    return { success: false, message: 'Error reordering items' };
   }
 });

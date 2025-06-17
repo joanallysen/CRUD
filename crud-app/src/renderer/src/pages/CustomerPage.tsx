@@ -16,6 +16,7 @@ const useCartOperations = () => {
   const [cartMap, setCartMap] = useState<Map<string, {item: Item, amount: number}>>(new Map())
 
   const addToCart = useCallback((newItem: Item) => {
+    console.log('Adding ', newItem);
     setCartMap(prevCart => {
       const newCart = new Map(prevCart)
       const existingEntry = newCart.get(newItem.id!)
@@ -63,6 +64,7 @@ const useCartOperations = () => {
 
   return {
     cartMap,
+    clearCart,
     setCartMap,
     addToCart,
     removeFromCart,
@@ -253,7 +255,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
       case 'Ordering':
         return (
           <>
-            {itemOperations.isLoading && <LoadingBlur />}
+            {itemOperations.isLoading && <LoadingBlur loadingMessage='Loading menu...'/>}
             <div className="grid grid-cols-[10rem_1fr_24rem] gap-0 h-full">
               <div className="bg-gray-900">
                 <CategorySidebar 
@@ -274,11 +276,11 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
               </div>
               <div className="bg-gray-900">
                 <Cart
+                  cartMap={cartOperations.cartMap}
                   onIncrease={cartOperations.increaseQuantity}
                   onDecrease={cartOperations.decreaseQuantity}
                   onRemove={cartOperations.removeFromCart}
                   onChangeSection={handleChangeSection}
-                  cartMap={cartOperations.cartMap}
                 />
               </div>
             </div>
@@ -286,7 +288,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         )
 
       case 'Summary':
-        return <OrderSummary 
+        return <OrderSummary
           cartMap={cartOperations.cartMap}
           onIncrease={cartOperations.increaseQuantity}
           onDecrease={cartOperations.decreaseQuantity}
@@ -298,6 +300,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         return <PaymentSection 
           onChangeSection={handleChangeSection} 
           cartMap={cartOperations.cartMap}
+          clearCart={cartOperations.clearCart}
         />
 
       case 'Favorite':
@@ -312,7 +315,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         )
 
       case 'History':
-        return <CustomerHistory onChangeSection={handleChangeSection} />
+        return <CustomerHistory onChangeSection={handleChangeSection} onAddToCart={cartOperations.addToCart} />
 
       default:
         return null

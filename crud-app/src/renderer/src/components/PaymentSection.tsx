@@ -1,14 +1,18 @@
-import React from 'react'
+import {useState} from 'react'
 import { CartItem } from 'src/types/customer'
 import { Item } from 'src/types/item'
+import Notification from './Notification'
 
 type CustomerSection = 'Ordering' | 'Summary' | 'Payment' | 'Favorite' | 'History'
 
 export default function PaymentSection(
-  {onChangeSection, cartMap}: {
+  {onChangeSection, cartMap, clearCart}: {
   onChangeSection: (section: CustomerSection) => void;
   cartMap: Map<string, {item: Item, amount: number}>;
+  clearCart: () => void;
 }): React.JSX.Element {
+
+  const [notification, setNotification] = useState<Boolean>(false);
 
   const handlePay = async (paymentMethod: 'Card' | 'Cash') =>{
     const cartItems = Array.from(cartMap.values()).map(entry =>({
@@ -20,14 +24,17 @@ export default function PaymentSection(
       cartItems, paymentMethod
     })
 
+    // if success remove customer cart
     if(result.success){
-      await window.electron.ipcRenderer.invoke('add-order', [])
+      await window.electron.ipcRenderer.invoke('save-customer-cart', [])
+      clearCart();
       onChangeSection('Ordering')
     }
   }
 
   return (
     <>
+      {notification && <Notification notificationMessage={'Successfully ordered!'} onNotificationEnd={() => setNotification(false)}/>}
         <div className="w-full h-full flex items-center justify-center text-center gap-40 relative">
         <h2 className='text-center absolute top-20'>Payment Method</h2>
         <div className='bg-accent-200 p-20 flex flex-col items-center justify-center text-center rounded-4xl hover:scale-105 transition-transform cursor-pointer'

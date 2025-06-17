@@ -1,7 +1,7 @@
 import React from 'react'
 import { Item } from '../../../types/item'
 
-export default function CartItem({
+export default function SummaryItem({
   cart,
   onIncrease,
   onDecrease,
@@ -15,7 +15,7 @@ export default function CartItem({
   const totalPrice = (cart.item.price * cart.amount).toFixed(2)
 
   return (
-    <div className='flex items-center gap-6 p-4 bg-accent-50 rounded-xl relative'>
+    <div className='flex items-center gap-6 p-4 bg-accent-50 rounded-xl relative sm:gap-4'>
       {/* Remove Button */}
       <button
         className='absolute top-3 right-3 p-1 hover:bg-accent-200 rounded-full transition-colors'
@@ -37,13 +37,13 @@ export default function CartItem({
 
       {/* Item Details */}
       <div className='flex-1 min-w-0'>
-        <h4 className='font-semibold text-white text-lg mb-1 truncate'>{cart.item.name}</h4>
-        <p className='text-white mb-2'>${cart.item.price} each</p>
+        <p className='font-bold text-white mb-1 truncate'>{cart.item.name}</p>
+        <p className='text-white mb-2'>${cart.item.price - cart.item.price * (cart.item.discount/100)} each</p>
         <p className='font-semibold text-gray-400'>Total: ${totalPrice}</p>
       </div>
 
       {/* Quantity Controls */}
-      <div className='flex items-center gap-3 rounded-lg border border-gray-300 px-1'>
+      <div className='flex items-center gap-3 sm:gap-0 rounded-lg border border-gray-300 px-1'>
         <button 
           onClick={() => onDecrease(cart.item.id!)}
           className='p-2  rounded-md transition-colors cursor-pointer'

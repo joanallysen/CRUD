@@ -51,7 +51,7 @@ export default function ItemMenu(
             {/* Card */}
             {sortedItems?.map((item) => {
                 return (
-                    <div key={item.id} className='bg-accent-50 rounded-lg hover:scale-105 transition-transform relative'>
+                    <div key={item.id} className='bg-accent-50 rounded-lg transition-transform relative'>
                         <div className='w-full flex justify-center items-center overflow-hidden'>
                             <img 
                                 className='w-80 h-80 p-6 object-cover rounded-4xl pt-7' 

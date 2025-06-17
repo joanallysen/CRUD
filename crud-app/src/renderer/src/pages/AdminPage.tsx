@@ -5,6 +5,7 @@ import MenuEditor from '@renderer/components/MenuEditor'
 import LoadingBlur from "@renderer/components/LoadingBlur";
 import CategorySidebar from "@renderer/components/CategorySidebar";
 import SearchBar from "@renderer/components/SearchBar";
+import AdminDashboard from "@renderer/components/AdminDashboard";
 
 const useItems = () => {
   const [items, setItems] = useState<Item[]>([])
@@ -181,12 +182,12 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
         switch(currentSection){
             case 'Dashboard':
                 return(
-                    <h1>Dashboard</h1>
+                    <AdminDashboard />
                 )
             case 'MenuEditor':
                 return(
                     <>
-                        {itemOperations.isLoading && <LoadingBlur />}
+                        {itemOperations.isLoading && <LoadingBlur loadingMessage="Loading item..."/>}
                         <div className="grid grid-cols-[10rem_1fr] gap-0 h-full">
                             <div className="bg-gray-900">
                             <CategorySidebar 
