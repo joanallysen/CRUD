@@ -1,5 +1,4 @@
-import CustomerPage from "@renderer/pages/CustomerPage";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 
 export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) => void}) : React.JSX.Element{
   const [formData, setFormData] = useState({
@@ -9,7 +8,6 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
   const [errors, setErrors] = useState<{ email: string; password: string }>({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -53,7 +51,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
     
     if (await isValid()) {
       console.log("it's not valid")
-      // return; LATER FIX
+      // return; TODO
     }
 
     const result = await window.electron.ipcRenderer.invoke('verify-account', formData.email, formData.password);
@@ -87,12 +85,12 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
       <div className="w-full max-w-sm mx-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-light text-white mb-2">Login.</h1>
+          <h1 className="font-light mb-2">Login</h1>
         </div>
 
         {/* Login Message */}
         {loginMessage && (
-          <div className={`mb-6 p-3 rounded text-sm ${
+          <div className={`mb-6 p-3 rounded ${
             loginMessage.includes('successful') 
               ? 'bg-green-900 bg-opacity-50 text-green-200 border border-green-700' 
               : 'bg-red-900 bg-opacity-50 text-red-200 border border-red-700'
@@ -105,7 +103,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
         <div className="space-y-6">
           {/* Email Field */}
           <div>
-            <label className="block text-white text-sm mb-2 text-left">
+            <label className="block mb-2 text-left">
               Email
             </label>
             <input
@@ -114,20 +112,20 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Email"
-              className={`input ${
+              className={`w-full px-4 py-3 bg-transparent border rounded-lg  placeholder-gray-400 focus:outline-none focus:border-white transition-colors ${
                 errors.email 
                   ? 'border-red-400' 
                   : 'border-gray-500 hover:border-gray-400'
               }`}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-400">{errors.email}</p>
+              <p className="mt-1 text-red-400">{errors.email}</p>
             )}
           </div>
 
           {/* Password Field */}
-          <div>
-            <label className="block text-white text-sm mb-2 text-left">
+          <div className="mb-21">
+            <label className="block mb-2 text-left">
               Password
             </label>
             <input
@@ -136,34 +134,32 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
               value={formData.password}
               onChange={handleInputChange}
               placeholder="Password"
-              className={`w-full px-4 py-3 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors ${
+              className={`w-full px-4 py-3 bg-transparent border rounded-lg  placeholder-gray-400 focus:outline-none focus:border-white transition-colors ${
                 errors.password 
                   ? 'border-red-400' 
                   : 'border-gray-500 hover:border-gray-400'
               }`}
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-400">{errors.password}</p>
+              <p className="mt-1 text-red-400">{errors.password}</p>
             )}
           </div>
 
           {/* Remember Me & Forgot Password */}
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
                 id="remember-me"
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRememberMe(e.target.checked)}
                 className="w-4 h-4 bg-transparent border border-gray-500 rounded focus:ring-0 focus:ring-offset-0"
               />
-              <label htmlFor="remember-me" className="ml-2 text-white">
+              <label htmlFor="remember-me" className="ml-2 ">
                 Remember Me
               </label>
             </div>
             <button
               type="button"
-              className="text-white underline hover:no-underline focus:outline-none"
+              className=" underline hover:no-underline focus:outline-none"
             >
               Forgot Password?
             </button>
@@ -194,11 +190,11 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
           </button>
 
           {/* Sign Up Link */}
-          <div className="text-center text-sm">
-            <span className="text-white">Don't have an account? </span>
+          <div className="text-center">
+            <span className="">Don't have an account? </span>
             <button
               type="button"
-              className="text-white underline hover:no-underline focus:outline-none"
+              className=" underline hover:no-underline focus:outline-none cursor-pointer"
               onClick={() => onChangePage('signUpPage')}
             >
               Create One Now

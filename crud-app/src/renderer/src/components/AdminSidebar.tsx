@@ -38,7 +38,7 @@ export default function AdminSidebar(
                     </span>
                 </li>
 
-                {/* Summary */}
+                {/* Dashboard */}
                 <li className="group relative">
                     <svg 
                         className={`transition-colors cursor-pointer ${
@@ -60,7 +60,7 @@ export default function AdminSidebar(
                     </span>
                 </li>
 
-                {/* Payment */}
+                {/* Edit Menu */}
                 <li className="group relative">
                     <svg 
                         className={`transition-colors cursor-pointer ${
@@ -76,44 +76,6 @@ export default function AdminSidebar(
                     </svg>
                     <span className="absolute w-auto p-2 min-w-max left-16 top-1/2 -translate-y-1/2 rounded-md shadow-md text-white bg-gray-900 text-sm font-medium transition-all duration-200 scale-0 origin-left group-hover:scale-100 z-50 border border-gray-700">
                         Edit Menu
-                    </span>
-                </li>
-
-                {/* Favorites */}
-                <li className="group relative">
-                    <svg 
-                        className={`transition-colors cursor-pointer ${
-                            activeIcon === 'Favorite' ? 'text-white' : 'text-gray-400 hover:text-white'
-                        }`}
-                        onClick={() => handleIconClick('MenuEditor')}
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="32" 
-                        height="32" 
-                        viewBox="0 0 24 24"
-                    >
-                        <path fill="currentColor" d="m12 21l-1.45-1.3q-2.525-2.275-4.175-3.925T3.75 12.812T2.388 10.4T2 8.15Q2 5.8 3.575 4.225T7.5 2.65q1.3 0 2.475.55T12 4.75q.85-1 2.025-1.55t2.475-.55q2.35 0 3.925 1.575T22 8.15q0 1.15-.387 2.25t-1.363 2.412t-2.625 2.963T13.45 19.7z"/>
-                    </svg>
-                    <span className="absolute w-auto p-2 min-w-max left-16 top-1/2 -translate-y-1/2 rounded-md shadow-md text-white bg-gray-900 text-sm font-medium transition-all duration-200 scale-0 origin-left group-hover:scale-100 z-50 border border-gray-700">
-                        Favorites
-                    </span>
-                </li>
-
-                {/* History */}
-                <li className="group relative">
-                    <svg 
-                        className={`transition-colors cursor-pointer ${
-                            activeIcon === 'History' ? 'text-white' : 'text-gray-400 hover:text-white'
-                        }`}
-                        onClick={() => handleIconClick('MenuEditor')}
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="32" 
-                        height="32" 
-                        viewBox="0 0 24 24"
-                    >
-                        <path fill="currentColor" d="M12 22q-3.875 0-6.725-2.575T2.05 13h2.025q.375 3.025 2.638 5.013T12 20q3.35 0 5.675-2.325T20 12t-2.325-5.675T12 4Q9.85 4 8.012 5.062T5.1 8H8v2H2.2q.725-3.5 3.475-5.75T12 2q2.075 0 3.9.788t3.175 2.137T21.213 8.1T22 12t-.788 3.9t-2.137 3.175t-3.175 2.138T12 22m2.8-5.8L11 12.4V7h2v4.6l3.2 3.2z"/>
-                    </svg>
-                    <span className="absolute w-auto p-2 min-w-max left-16 top-1/2 -translate-y-1/2 rounded-md shadow-md text-white bg-gray-900 text-sm font-medium transition-all duration-200 scale-0 origin-left group-hover:scale-100 z-50 border border-gray-700">
-                        Order History
                     </span>
                 </li>
             </ul>

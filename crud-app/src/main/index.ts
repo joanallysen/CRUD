@@ -209,6 +209,22 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
   }
 });
 
+ipcMain.handle('check-email-exist', async(_, email: string) =>{
+  try{
+    await checkConnection();
+
+    const result = await customerCollection?.findOne({email: email});
+    if (result){
+      console.log('Email already existed');
+      return {success: true, exist: true};
+    }
+    return {success: true, exist: false};
+  } catch(error){
+    console.log(error);
+    return {success: false};
+  }
+})
+
 
 ipcMain.handle('add-customer', async (_, email: string, password:string) =>{
   console.log(`Adding new customer, email: ${email}, password: ${password}`);
@@ -733,7 +749,7 @@ ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymen
   }
 });
 
-
+// for history
 ipcMain.handle('get-customer-orders', async (_) => {
   try {
     console.log('Getting customer orders at get-customer-orders')
@@ -779,5 +795,18 @@ ipcMain.handle('get-customer-orders', async (_) => {
   } catch (error) {
     console.error('Error fetching customer orders:', error);
     return [];
+  }
+});
+
+
+ipcMain.handle('get-all-orders', async(_) =>{
+  try{
+      console.log('getting all order get-all-orders')
+      await checkConnection();
+
+      const orders = await orderCollection?.find().sort({ date: -1 }).toArray() as Order[];
+      return {success: true, orders: orders}
+  } catch(error){
+    return {success: false, orders: []}
   }
 });

@@ -1,174 +1,103 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Order } from 'src/types/order';
-import { Customer } from 'src/types/customer';
 
-// Mock data using your actual interfaces
-const mockOrders: Order[] = [
-    // ... (same as before)
-    {
-        id: '1',
-        date: new Date('2025-06-17T10:30:00'),
-        customerEmail: 'john@example.com',
-        customerName: 'John Doe',
-        items: [{ itemId: 'item1', amount: 2 }],
-        totalPrice: 89.99,
-        orderStatus: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '2',
-        date: new Date('2025-06-17T14:15:00'),
-        customerEmail: 'sarah@example.com',
-        customerName: 'Sarah Smith',
-        items: [{ itemId: 'item2', amount: 1 }],
-        totalPrice: 156.50,
-        orderStatus: 'Processing',
-        paymentMethod: 'Cash'
-    },
-    {
-        id: '3',
-        date: new Date('2025-06-16T16:45:00'),
-        customerEmail: 'mike@example.com',
-        customerName: 'Mike Johnson',
-        items: [{ itemId: 'item3', amount: 3 }],
-        totalPrice: 78.25,
-        orderStatus: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '4',
-        date: new Date('2025-06-15T09:20:00'),
-        customerEmail: 'emma@example.com',
-        customerName: 'Emma Wilson',
-        items: [{ itemId: 'item4', amount: 1 }],
-        totalPrice: 234.75,
-        orderStatus: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '5',
-        date: new Date('2025-06-10T11:30:00'),
-        customerEmail: 'alex@example.com',
-        customerName: 'Alex Brown',
-        items: [{ itemId: 'item5', amount: 2 }],
-        totalPrice: 92.40,
-        orderStatus: 'Complete',
-        paymentMethod: 'Cash'
-    }
-];
 
-const mockCustomers: Customer[] = [
-    // ... (same as before)
-    {
-        id: '1',
-        email: 'john@example.com',
-        password: 'hashed_password',
-        name: 'John Doe',
-        favorites: ['item1'],
-        cart: [],
-        orderHistory: ['1'],
-        status: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '2',
-        email: 'sarah@example.com',
-        password: 'hashed_password',
-        name: 'Sarah Smith',
-        favorites: ['item2', 'item3'],
-        cart: [],
-        orderHistory: ['2'],
-        status: 'Processing',
-        paymentMethod: 'Cash'
-    },
-    {
-        id: '3',
-        email: 'mike@example.com',
-        password: 'hashed_password',
-        name: 'Mike Johnson',
-        favorites: [],
-        cart: [{ itemId: 'item6', amount: 1 }],
-        orderHistory: ['3'],
-        status: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '4',
-        email: 'emma@example.com',
-        password: 'hashed_password',
-        name: 'Emma Wilson',
-        favorites: ['item4'],
-        cart: [],
-        orderHistory: ['4'],
-        status: 'Complete',
-        paymentMethod: 'Card'
-    },
-    {
-        id: '5',
-        email: 'alex@example.com',
-        password: 'hashed_password',
-        name: 'Alex Brown',
-        favorites: [],
-        cart: [],
-        orderHistory: ['5'],
-        status: 'Inactive',
-        paymentMethod: 'Cash'
-    }
-];
-
-const AdminDashboard = () => {
-    const [orders] = useState(mockOrders);
-    const [customers] = useState(mockCustomers);
+export default function AdminDashboard() : React.JSX.Element {
+    const [orders, setOrders] = useState<Order[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    useEffect(() => {
+        loadOrder();
+    }, []);
+
+    const loadOrder = async () => {
+        console.log('Loading order...');
+        const result: { success: boolean; orders: Order[] } = await window.electron.ipcRenderer.invoke('get-all-orders');
+        if (result.success) {
+            console.log('orders', result.orders);
+            setOrders(result.orders);
+        } else {
+            console.log('Data is wrong?');
+        }
+    };
 
     // Calculate sales metrics
     const calculateSales = () => {
         const now = new Date();
+        // start from midnight
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const weekStart = new Date(today.getTime() - (today.getDay() * 24 * 60 * 60 * 1000));
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay());
+
+        const lastWeekStart = new Date(weekStart);
+        lastWeekStart.setDate(weekStart.getDate() - 7);
+
+        const lastWeekEnd = new Date(weekStart);
+        lastWeekEnd.setDate(weekStart.getDate() - 1);
+
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
         const todaySales = orders
             .filter(order => new Date(order.date) >= today)
+            .reduce((sum, order) => sum + order.totalPrice, 0);
+
+        const yesterdaySales = orders
+            .filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= yesterday && orderDate < today;
+            })
             .reduce((sum, order) => sum + order.totalPrice, 0);
 
         const weekSales = orders
             .filter(order => new Date(order.date) >= weekStart)
             .reduce((sum, order) => sum + order.totalPrice, 0);
 
+        const lastWeekSales = orders
+            .filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= lastWeekStart && orderDate <= lastWeekEnd;
+            })
+            .reduce((sum, order) => sum + order.totalPrice, 0);
+
         const monthSales = orders
             .filter(order => new Date(order.date) >= monthStart)
             .reduce((sum, order) => sum + order.totalPrice, 0);
 
-        return { todaySales, weekSales, monthSales };
+        const lastMonthSales = orders
+            .filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= lastMonthStart && orderDate <= lastMonthEnd;
+            })
+            .reduce((sum, order) => sum + order.totalPrice, 0);
+
+        return { todaySales, weekSales, monthSales, yesterdaySales, lastWeekSales, lastMonthSales };
     };
 
-    const { todaySales, weekSales, monthSales } = calculateSales();
+    const { todaySales, weekSales, monthSales, yesterdaySales, lastWeekSales, lastMonthSales } = calculateSales();
+/*
 
-    // Calculate additional customer metrics
-    const getCustomerMetrics = (customer: Customer) => {
-        const customerOrders = orders.filter(order => order.customerEmail === customer.email);
-        const totalSpent = customerOrders.reduce((sum, order) => sum + order.totalPrice, 0);
-        const lastOrderDate = customerOrders.length > 0 
-            ? new Date(Math.max(...customerOrders.map(order => new Date(order.date).getTime())))
-            : null;
-        
-        return {
-            totalSpent,
-            lastOrderDate,
-            totalOrders: customerOrders.length
-        };
-    };
+now	Current date and time	June 18, 2025, 12:34:56 PM
+today	Current date at midnight (00:00)	June 18, 2025, 00:00:00
+yesterday	Yesterday's date at midnight	June 17, 2025, 00:00:00
+weekStart	Start of the current week (Sunday)	June 15, 2025, 00:00:00
+lastWeekStart	Start of the previous week (Sunday of last week)	June 8, 2025, 00:00:00
+lastWeekEnd	End of the previous week (Saturday of last week)	June 14, 2025, 00:00:00
+monthStart	First day of the current month	June 1, 2025, 00:00:00
+lastMonthStart	First day of the previous month	May 1, 2025, 00:00:00
+lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
 
-    // Filter customers
-    const filteredCustomers = customers.filter(customer => {
-        const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                                 customer.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || customer.status.toLowerCase() === statusFilter;
+    const filteredOrders = orders.filter((order) => {
+        const regex = new RegExp(searchTerm, 'i'); // 'i' means case-insensitive
+        const matchesSearch : boolean = regex.test(order.customerName) || regex.test(order.customerEmail);
+        const matchesStatus : boolean = statusFilter === 'all' || order.orderStatus.toLowerCase() === statusFilter;
         return matchesSearch && matchesStatus;
     });
-
 
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('en-NZ', {
@@ -180,10 +109,13 @@ const AdminDashboard = () => {
         }).format(new Date(date));
     };
 
+    const daySalesChanges =  yesterdaySales === 0 ? 0 : ((todaySales - yesterdaySales) / (yesterdaySales || 1)) * 100;
+    const weekSalesChanges = (weekSales - lastWeekSales) / (lastWeekSales || 1) * 100;
+    const monthSalesChanges = (monthSales - lastMonthSales) / (lastMonthSales || 1) * 100;
     return (
-        <div className="min-h-screen bg-gray-900 p-6">
-            <div className="max-w-7xl mx-auto">
-                <h1 className="text-3xl font-bold text-gray-100 mb-8">Sales Dashboard</h1>
+        <div className="min-h-screen bg-gray-850 p-6">
+            <div className="max-w-6xl mx-auto">
+                <h1 className="font-bold mb-6">Sales Dashboard</h1>
                 
                 {/* Top Row - Sales Metrics (3 columns) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -192,10 +124,17 @@ const AdminDashboard = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-bold">Today's Sales</h3>
-                                <h1 className="font-bold">${todaySales}</h1>
-                                <p className="text-green-400 flex items-center mt-1">
-                                    +12.5% from yesterday
-                                </p>
+                                <h2 className="font-bold">${todaySales}</h2>
+                                {daySalesChanges > 0 ? 
+                                    <p className="text-green-400 flex items-center mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
+                                    {daySalesChanges.toFixed(2)}% from yesterday
+                                    </p> :
+                                    <p className='text-red-400 flex items-center mt-1'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M16 18v-2h2.6l-5.2-5.15l-4 4L2 7.4L3.4 6l6 6l4-4l6.6 6.6V12h2v6z"/></svg>
+                                    {daySalesChanges.toFixed(2)}% from yesterday
+                                    </p>   
+                                }
                             </div>
                         </div>
                     </div>
@@ -204,12 +143,18 @@ const AdminDashboard = () => {
                     <div className="bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-green-600">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-400">This Week's Sales</p>
-                                <p className="text-2xl font-bold text-gray-100">{weekSales}</p>
-                                <p className="text-xs text-green-400 flex items-center mt-1">
+                                <h3 className="font-bold">This Week's Sales</h3>
+                                <h2 className="font-bold">${weekSales}</h2>
+                                {weekSalesChanges > 0 ? 
+                                    <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
-                                    +8.2% from last week
-                                </p>
+                                    {weekSalesChanges.toFixed(2)}% from last week
+                                    </p> :
+                                    <p className='text-red-400 flex items-center mt-1'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M16 18v-2h2.6l-5.2-5.15l-4 4L2 7.4L3.4 6l6 6l4-4l6.6 6.6V12h2v6z"/></svg>
+                                    {weekSalesChanges.toFixed(2)}% from last week
+                                    </p>   
+                                }
                             </div>
                         </div>
                     </div>
@@ -218,124 +163,143 @@ const AdminDashboard = () => {
                     <div className="bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-purple-600">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium text-gray-400">This Month's Sales</p>
-                                <p className="text-2xl font-bold text-gray-100">{monthSales}</p>
-                                <p className="text-xs text-green-400 flex items-center mt-1">
-                                    +15.7% from last month
-                                </p>
+                                <h3 className='font-bold'>This Month's Sales</h3>
+                                <h2 className='font-bold'>${monthSales}</h2>
+                                {monthSalesChanges > 0 ? 
+                                    <p className="text-green-400 flex items-center mt-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
+                                    {monthSalesChanges.toFixed(2)}% from last month
+                                    </p> :
+                                    <p className='text-red-400 flex items-center mt-1'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M16 18v-2h2.6l-5.2-5.15l-4 4L2 7.4L3.4 6l6 6l4-4l6.6 6.6V12h2v6z"/></svg>
+                                    {monthSalesChanges.toFixed(2)}% from last month
+                                    </p>   
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Bottom Row - Customer Data (1 column, full width) */}
-                <div className=" rounded-lg shadow-md">
-                    <div className="p-6 border-b border-gray-700">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <h2 className="text-xl font-semibold">Customer Management</h2>
-                            
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                {/* Search */}
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Search customers..."
-                                        className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                <div>
+                    <div className="flex flex-row items-center justify-between gap-4">
+                        <h1 className="font-bold mb-6">Customer Management</h1>
+                        
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            {/* Search */}
+                            <div className="relative">
+                                <svg
+                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        fill="currentColor"
+                                        d="M9.5 16q-2.725 0-4.612-1.888T3 9.5t1.888-4.612T9.5 3t4.613 1.888T16 9.5q0 1.1-.35 2.075T14.7 13.3l5.6 5.6q.275.275.275.7t-.275.7t-.7.275t-.7-.275l-5.6-5.6q-.75.6-1.725.95T9.5 16m0-2q1.875 0 3.188-1.312T14 9.5t-1.312-3.187T9.5 5T6.313 6.313T5 9.5t1.313 3.188T9.5 14"
                                     />
-                                </div>
-                                
-                                {/* Status Filter */}
-                                <div className="relative">
-                                    <select
-                                        className="pl-10 pr-8 py-2 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none"
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value)}
-                                    >
-                                        <option value="all">All Status</option>
-                                        <option value="processing">Processing</option>
-                                        <option value="cancelled">Cancelled</option>
-                                        <option value="complete">Complete</option>
-                                        <option value="inactive">Inactive</option>
-                                    </select>
-                                </div>
+                                </svg>
+                                <input
+                                    type="text"
+                                    placeholder="Search customers..."
+                                    className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            
+                            {/* Status Filter */}
+                            <div className="relative flex items-center">
+                                <select
+                                    className="pr-8 py-2 pl-4 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none"
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                >
+                                    <option value="all">All Status</option>
+                                    <option value="processing">Processing</option>
+                                    <option value="cancelled">Cancelled</option>
+                                    <option value="complete">Complete</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                                <span className="absolute right-2 pointer-events-none flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                                        <path fill="currentColor" d="M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20z"/>
+                                    </svg>
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Customer Table */}
-                        <table className="w-full">
-                            <thead className="bg-gray-900">
-                                <tr>
-                                    <th className="px-6 py-4 text-left uppercase">Customer</th>
-                                    <th className="px-6 py-4 text-left uppercase">Status</th>
-                                    <th className="px-6 py-4 text-left uppercase">Total Spent</th>
-                                    <th className="px-6 py-4 text-left uppercase">Payment Method</th>
-                                    <th className="px-6 py-4 text-left uppercase">Last Order</th>
-                                    <th className="px-6 py-4 text-left uppercase">Orders</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-gray-800 divide-y divide-gray-700">
-                                {filteredCustomers.map((customer) => {
-                                    const metrics = getCustomerMetrics(customer);
-                                    return (
-                                        <tr key={customer.id} className="hover:bg-gray-700">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div>
-                                                    <div className="">{customer.name}</div>
-                                                    <div className=" text-gray-400">{customer.email}</div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-3 py-1 font-semibold rounded-full ${
-                                                    customer.status === 'Complete' 
-                                                        ? 'bg-green-900 text-green-300'
-                                                        : customer.status === 'Processing'
-                                                        ? 'bg-yellow-900 text-yellow-300'
-                                                        : customer.status === 'Cancelled'
-                                                        ? 'bg-red-900 text-red-300'
-                                                        : 'bg-gray-700 text-gray-300' // Inactive
-                                                }`}>
-                                                    {customer.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-100">
-                                                ${metrics.totalSpent}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-100">
-                                                <span className={`inline-flex px-2 py-1 rounded ${
-                                                    customer.paymentMethod === 'Card' 
-                                                        ? 'bg-blue-900 text-blue-300'
-                                                        : customer.paymentMethod === 'Cash'
-                                                        ? 'bg-yellow-900 text-yellow-300'
-                                                        : 'bg-gray-700 text-gray-300' // Unknown
-                                                }`}>
-                                                    {customer.paymentMethod}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-400">
-                                                {metrics.lastOrderDate ? formatDate(metrics.lastOrderDate) : 'No orders'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-gray-100">
-                                                {metrics.totalOrders}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                        
-                        {filteredCustomers.length === 0 && (
-                            <div className="text-center py-12">
-                                <h3 className="mt-2 ">No customers found</h3>
-                                <p className="mt-1">Try adjusting your search or filter criteria.</p>
-                            </div>
-                        )}
+                {/* Customer Table */}
+                    <table className="w-full">
+                        <thead className="bg-gray-900">
+                            <tr>
+                                <th className="px-6 py-4 text-left uppercase">Customer</th>
+                                <th className="px-6 py-4 text-left uppercase">Status</th>
+                                <th className="px-6 py-4 text-left uppercase">Total Spent</th>
+                                <th className="px-6 py-4 text-left uppercase">Payment Method</th>
+                                <th className="px-6 py-4 text-left uppercase">Last Order</th>
+                                <th className="px-6 py-4 text-left uppercase">Orders</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-gray-800 divide-y divide-gray-700">
+                            {filteredOrders.map((order) => {
+                                return (
+                                    <tr key={order.id} className="hover:bg-gray-700">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div>
+                                                <div className="">{order.customerName}</div>
+                                                <div className=" text-gray-400">{order.customerEmail}</div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`inline-flex px-3 py-1 font-semibold rounded-full ${
+                                                order.orderStatus === 'Complete' 
+                                                    ? 'bg-green-900 text-green-300'
+                                                    : order.orderStatus === 'Processing'
+                                                    ? 'bg-yellow-900 text-yellow-300'
+                                                    : order.orderStatus === 'Cancelled'
+                                                    ? 'bg-red-900 text-red-300'
+                                                    : 'bg-gray-700 text-gray-300' // Inactive
+                                            }`}>
+                                                {order.orderStatus}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                            ${order.totalPrice}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                            <span className={`inline-flex px-2 py-1 rounded ${
+                                                order.paymentMethod === 'Card' 
+                                                    ? 'bg-blue-900 text-blue-300'
+                                                    : order.paymentMethod === 'Cash'
+                                                    ? 'bg-yellow-900 text-yellow-300'
+                                                    : 'bg-gray-700 text-gray-300' // Unknown
+                                            }`}>
+                                                {order.paymentMethod}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-400">
+                                            {order.date ? formatDate(order.date) : 'No orders'}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                            {order.items.length}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                    
+                    {filteredOrders.length === 0 && (
+                        <div className="text-center py-12">
+                            <h3 className="mt-2 ">No orders found</h3>
+                            <p className="mt-1">Try adjusting your search or filter criteria.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
-
-export default AdminDashboard;

@@ -81,7 +81,6 @@ export default function CustomerHistory(
         {orders.length === 0 ? (
             <p className="text-gray-300 text-lg">No orders found</p>
         ) : (
-          <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <table className="w-full">
               <thead className="bg-gray-900">
                 <tr>
@@ -98,14 +97,14 @@ export default function CustomerHistory(
                     <tr key={order.id} className="border-b border-gray-700 hover:bg-gray-700">
                       <td className="py-4 px-6">
                         <div>{order.id}</div>
-                        <div>{order.paymentMethod}</div>
+                        <div className='text-gray-500'>{order.paymentMethod}</div>
                       </td>
                       <td className="py-4 px-6">
-                        <div>{formatDate(order.date)}</div>
+                        <div className='text-gray-500'>{formatDate(order.date)}</div>
                       </td>
                       <td className="py-4 px-6">
                         <div>${order.totalPrice.toFixed(2)}</div>
-                        <div>{order.items.length} items</div>
+                        <div className='text-gray-500'>{order.items.length} items</div>
                       </td>
                       <td className="py-4 px-6">
                         <span className={`px-3 py-1 rounded-full ${getStatusColor(order.orderStatus)}`}>
@@ -148,7 +147,6 @@ export default function CustomerHistory(
                 })}
               </tbody>
             </table>
-          </div>
         )}
       </div>
     </div>

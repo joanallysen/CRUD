@@ -1,6 +1,6 @@
 import {Item} from 'src/types/item';
 import {Customer, CartItem} from 'src/types/customer';
-import CartItemUI from './CartItemUI';
+import CartItemUI from './CartItemUi';
 
 type CustomerSection = 'Ordering' | 'Summary' | 'Payment';
 
@@ -57,7 +57,7 @@ export default function Cart({
                 <div className='flex-grow-[8] overflow-y-auto'>
                     <h3 className='mb-6 font-bold'>Your Cart</h3>
                     <div className='space-y-2'>
-                        {(cartMap.size <= 0) && <p className='text-gray-400'>Click + icon on one of the item to start placing items!</p> }
+                        {(cartMap.size <= 0) && <p className='text-gray-400 text-center p-6'>Click + icon on one of the item to start placing items!</p> }
                         {Array.from(cartMap.values()).map((cart, idx) =>{
 
                         return (
