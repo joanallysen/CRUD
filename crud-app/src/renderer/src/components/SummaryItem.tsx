@@ -12,10 +12,10 @@ export default function SummaryItem({
   onDecrease: (id: string) => void
   onRemove: (id: string) => void
 }): React.JSX.Element {
-  const totalPrice = (cart.item.price * cart.amount).toFixed(2)
+  const totalPrice = ((cart.item.price - (cart.item.price * (cart.item.discount || 0)/100)) * cart.amount).toFixed(2)
 
   return (
-    <div className='flex items-center gap-6 p-4 bg-accent-50 rounded-xl relative sm:gap-4'>
+    <div className='flex items-center p-4 bg-accent-50 rounded-xl relative sm:gap-4'>
       {/* Remove Button */}
       <button
         className='absolute top-3 right-3 p-1 hover:bg-accent-200 rounded-full transition-colors'
@@ -38,7 +38,7 @@ export default function SummaryItem({
       {/* Item Details */}
       <div className='flex-1 min-w-0'>
         <p className='font-bold text-white mb-1 truncate'>{cart.item.name}</p>
-        <p className='text-white mb-2'>${cart.item.price - cart.item.price * (cart.item.discount/100)} each</p>
+        <p className='text-white mb-2'>${cart.item.price - cart.item.price * ((cart.item.discount || 0)/100)} each</p>
         <p className='font-semibold text-gray-400'>Total: ${totalPrice}</p>
       </div>
 

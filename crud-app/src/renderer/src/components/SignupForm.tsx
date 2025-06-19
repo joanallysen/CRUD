@@ -1,5 +1,5 @@
 import {useState} from 'react'
-
+import Notification from './Notification';
 export default function SignupForm(
     {onChangePage}:
     {onChangePage : (pageName: PageName) => void}
@@ -12,6 +12,7 @@ export default function SignupForm(
 
     const [errors, setErrors] = useState<{ email: string; password: string; confirmPassword: string }>({ email: '', password: '', confirmPassword: '' });
     const [isLoading, setIsLoading] = useState(false);
+    const [showNotification, setShowNotificaiton] = useState(false);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
@@ -43,28 +44,39 @@ export default function SignupForm(
         }
     
         setErrors(newErrors);
-        console.log(!(Object.keys(newErrors).length === 0));
-        return !(Object.keys(newErrors).length === 0);
+        console.log((Object.keys(newErrors).length === 0));
+        return (Object.keys(newErrors).length === 0);
     };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) =>{
         e.preventDefault();
-        if (await isValid()){console.log('not valid')} // check key or password
+        if (await !isValid()){return;} // check key or password
 
         // TODO check email here
-        console.log('password correct!');
+        const emailExist : {success: boolean, exist: boolean} = await window.electron.ipcRenderer.invoke('check-email-exist', formData.email);
+        if (emailExist.success){
+            if (emailExist.exist){
+                setErrors({email: 'Email already existed', password: '', confirmPassword: ''});
+                return;
+            }
+        } else{
+            console.log('Failed to check email inside database')
+            return;
+        }
 
         setIsLoading(true);
+        setShowNotificaiton(true);
         await window.electron.ipcRenderer.invoke('add-customer', formData.email, formData.password);
         setIsLoading(false);
-        onChangePage('loginPage')
     }
     
     
     return (
+        
         <div className="min-h-screen flex items-center justify-center" style={{
         background: 'linear-gradient(135deg, #142D4D 0%, #3C0A06 100%)'
         }}>
+            {showNotification && (<Notification notificationMessage={'Account Created, Go back to login page to sign in'} onNotificationEnd={() => setShowNotificaiton(false)} />)}
         <div className="w-full max-w-sm mx-4">
             {/* Header */}
             <div className="text-center mb-12">
@@ -123,11 +135,11 @@ export default function SignupForm(
                 Confirm Password
                 </label>
                 <input
-                name="password"
+                name="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                placeholder="Password"
+                placeholder="Confirm Password"
                 className={`w-full px-4 py-3 bg-transparent border rounded-lg  placeholder-gray-400 focus:outline-none focus:border-white transition-colors ${
                     errors.confirmPassword 
                     ? 'border-red-400' 
@@ -135,7 +147,7 @@ export default function SignupForm(
                 }`}
                 />
                 {errors.confirmPassword && (
-                <p className="mt-1 text-red-400">{errors.password}</p>
+                <p className="mt-1 text-red-400">{errors.confirmPassword}</p>
                 )}
             </div>
     

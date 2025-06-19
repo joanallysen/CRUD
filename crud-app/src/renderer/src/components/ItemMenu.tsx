@@ -14,27 +14,24 @@ export default function ItemMenu(
     }
 ) : React.JSX.Element{
 
+    // need to hide unavailable item
     const sortedItems = useMemo(() => {
         return [...items].sort((a, b) => {
             const aIsFavorited = isItemFavorited(a.id!);
             const bIsFavorited = isItemFavorited(b.id!);
-            
-            // If a is favorited and b is not, a comes first (return -1)
+
+            // Favorited items come first
             if (aIsFavorited && !bIsFavorited) return -1;
-            // If b is favorited and a is not, b comes first (return 1)
             if (!aIsFavorited && bIsFavorited) return 1;
-            // If both have same favorite status, maintain original order
+
+            // If both have same favorite status, sort by popularity descending
+            if (a.popularity > b.popularity) return -1;
+            if (a.popularity < b.popularity) return 1;
+
+            // Maintain original order if all else equal
             return 0;
         });
     }, [items, isItemFavorited]);
-
-    const sortedByPopularity = useMemo(() => {
-        return [...items].sort((a, b) =>{
-            if (a.popularity > b.popularity) return -1;
-            if (a.popularity < b.popularity) return 1;
-            return 0;
-        });
-    }, [items])
 
     return(
         <>

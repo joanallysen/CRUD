@@ -65,6 +65,16 @@ export default function EditItemPanel(
         await window.electron.ipcRenderer.invoke('add-item', item);
         // handle temp cache
         onAddItemCache(item);
+
+        // remove input box value
+        nameRef.current!.value = '';
+        descRef.current!.value = '';
+        priceRef.current!.value = '';
+        categoryRef.current!.value = '';
+        discountRef.current!.value = '';
+        availableRef.current!.checked = false;
+        setImgSrc('');
+        setImgData({mime: '', data: ''});
     }
 
 
@@ -102,7 +112,6 @@ export default function EditItemPanel(
             </button>
         }
 
-            {/* Todo form required is pretty nmuch useless */}
             <label className="block text-white mb-2 text-left">Name </label>
             <input  name="name" type="text" placeholder="Name" className={`input`} ref={nameRef}/>
             <label className="block text-white mb-2 text-left">Description </label>

@@ -211,6 +211,7 @@ ipcMain.handle('verify-account', async (_, email: string, password: string) =>{
 
 ipcMain.handle('check-email-exist', async(_, email: string) =>{
   try{
+    console.log('Checking if email existed');
     await checkConnection();
 
     const result = await customerCollection?.findOne({email: email});
@@ -435,6 +436,23 @@ ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
     return [];
   }
 })
+
+ipcMain.handle('get-special-deals', async (_) => {
+  console.log('Getting special deals')
+  try {
+    await checkConnection();
+    const itemsRaw = await itemCollection?.find({ discount: { $gt: 0 } }).toArray() as Item[];
+    const items = itemsRaw?.map((item) => ({
+      ...item,
+      id: item._id?.toHexString(),
+      img: { mime: item.img.mime, data: item.img.data.toString('base64') }
+    }));
+    return items || [];
+  } catch (error) {
+    console.error('Error getting special deals:', error);
+    return [];
+  }
+});
 
 ipcMain.handle('update-item', async(_, updatedItem : Item) => {
   try {
@@ -687,6 +705,18 @@ ipcMain.handle('is-item-favorited', async (_, itemId: string) => {
   }
 });
 
+const increasePopularity = async (itemId) => {
+  try{
+    await checkConnection();
+
+    itemCollection?.updateOne(
+      { _id: ObjectId.createFromHexString(itemId) },
+      { $inc: { popularity: 1 } });
+  } catch (error){
+    console.log(error);
+  }
+} 
+
 ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymentMethod: 'Cash' | 'Card' }) => {
   try {
     console.log(`User successfully payed by ${orderData.paymentMethod}, User buyed cart : ${orderData.cartItems}`)
@@ -701,7 +731,8 @@ ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymen
     for (const cartItem of orderData.cartItems) {
       const item = await itemCollection?.findOne({ _id: ObjectId.createFromHexString(cartItem.itemId) });
       if (item) {
-        total += item.price * cartItem.amount;
+        total += ((item.price -  (item.price * (item.discount || 0) / 100)) * cartItem.amount);
+        increasePopularity(item.id);
       }
     }
 

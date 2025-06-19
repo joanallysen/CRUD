@@ -75,15 +75,15 @@ export default function MenuEditor(
 
             {/* Add new item card */}
             <div
-                className="flex flex-col items-center justify-center bg-accent-50 rounded-lg transition-transform h-120"
+                className="flex flex-col items-center justify-center rounded-lg transition-transform h-full border-2 border-dashed border-gray-400"
             >
                 <button
                     className="flex flex-col items-center justify-center w-full h-full focus:outline-none cursor-pointer"
                     onClick={() => handleAdd()}
                 >
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="12" fill="#e0e7ff"/>
-                            <path d="M12 7v10M7 12h10" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round"/>
+                            <circle cx="12" cy="12" r="12" fill="none"/>
+                            <path d="M12 7v10M7 12h10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                         </svg>
                     <span className="mt-4 font-semibold text-lg">Add New Item</span>
                 </button>
@@ -112,6 +112,7 @@ export default function MenuEditor(
                         <div className='p-6'>
                             <p className='font-bold'>{item.name}</p>
                             <p className='text-gray-400'>{item.description}</p>
+                            <p className='px-3 py-1 rounded-full bg-gray-700 w-fit'>Popularity : {item.popularity}</p>
 
                             <span className='flex gap-3'>
                             {item.discount > 0 ?

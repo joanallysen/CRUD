@@ -38,7 +38,7 @@ export default function CartItemUI({
         {/* Item Details */}
         <div className='flex-1 w-full'>
           <p className='font-bold mb-1'>{cart.item.name}</p>
-          <p className='text-white mb-2'>${cart.item.price - (cart.item.price * cart.item.discount / 100) } each</p>
+          <p className='text-white mb-2'>${cart.item.price - (cart.item.price * (cart.item.discount || 0) / 100) } each</p>
         </div>
 
         {/* Quantity Controls */}

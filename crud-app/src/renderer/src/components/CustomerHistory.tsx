@@ -115,13 +115,13 @@ export default function CustomerHistory(
                         <div className="flex space-x-2">
                           <button
                             onClick={() => toggleOrderExpansion(order.id!)}
-                            className="bg-blue-800  px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                            className="bg-gray-700  px-3 py-1 rounded hover:bg-gray-600 transition-colors cursor-pointer"
                           >
                             {expandedOrder === order.id ? 'Hide' : 'View'} Items
                           </button>
                           <button
                             onClick={() => handleReorder(order)}
-                            className="bg-green-800  px-3 py-1 rounded hover:bg-green-700 transition-colors"
+                            className="bg-green-800  px-3 py-1 rounded hover:bg-green-700 transition-colors cursor-pointer"
                           >
                             Reorder
                           </button>

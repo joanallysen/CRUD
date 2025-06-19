@@ -31,6 +31,19 @@ export default function CategorySidebar(
                         All items
                     </button>
                 </li>
+
+                <li>
+                    <button 
+                        className={`cursor-pointer font-bold w-full flex items-center p-6 text-left transition ${
+                            activeCategory === "Special deals" 
+                                ? 'bg-accent-300' 
+                                : 'hover:bg-accent-300'
+                        }`}
+                        onClick={() => handleCategoryClick("Special deals")}
+                    >
+                        Special deals
+                    </button>
+                </li>
                 {categories?.map((category, idx) =>{
                     return (
                         <li key={idx}>

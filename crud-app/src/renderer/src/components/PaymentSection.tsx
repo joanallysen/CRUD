@@ -26,12 +26,12 @@ export default function PaymentSection(
 
     // if success remove customer cart
     if(result.success){
-      await window.electron.ipcRenderer.invoke('save-customer-cart', [])
+      await window.electron.ipcRenderer.invoke('save-customer-cart', []);
+      setNotification(true)
       clearCart();
-      onChangeSection('Ordering')
     }
   }
-
+// disable the button afterplacing order TODO
   return (
     <>
       {notification && <Notification notificationMessage={'Successfully ordered!'} onNotificationEnd={() => setNotification(false)}/>}

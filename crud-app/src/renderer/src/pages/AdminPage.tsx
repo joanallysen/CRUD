@@ -74,7 +74,6 @@ const useItems = () => {
     setItemMenuTitle(category)
   }, [])
 
-  const isLoading = useMemo(() => categoryAndItem.current.size <= 0, [categoryAndItem.current.size])
 
   const refreshCurrentView = useCallback(() => {
     if (currentSearch !== '') {
@@ -117,14 +116,41 @@ const useItems = () => {
 
   // update an item in the cache
   const updateItemCache = useCallback((updatedItem: Item) => {
-    if (categoryAndItem.current.has(updatedItem.category)) {
-      const items = categoryAndItem.current.get(updatedItem.category)!;
+    // find and remove from old category first
+    let oldCategory: string | undefined;
+    for (const [category, items] of categoryAndItem.current.entries()) {
       const index = items.findIndex(item => item.id === updatedItem.id);
       if (index !== -1) {
-        items[index] = updatedItem;
-        categoryAndItem.current.set(updatedItem.category, [...items]);
+        oldCategory = category;
+        if (category === updatedItem.category) {
+          // Same category, just update
+          const newItems = [...items];
+          newItems[index] = updatedItem;
+          categoryAndItem.current.set(category, newItems);
+          refreshCurrentView();
+          return;
+        } else {
+          // different category, remove from old
+          const newItems = items.filter(item => item.id !== updatedItem.id);
+          if (newItems.length === 0) {
+            categoryAndItem.current.delete(category);
+            setCategories(prev => prev.filter(cat => cat !== category));
+          } else {
+            categoryAndItem.current.set(category, newItems);
+          }
+          break;
+        }
       }
     }
+  
+    // add to new category
+    if (categoryAndItem.current.has(updatedItem.category)) {
+      categoryAndItem.current.get(updatedItem.category)!.push(updatedItem);
+    } else {
+      categoryAndItem.current.set(updatedItem.category, [updatedItem]);
+      setCategories(prev => prev.includes(updatedItem.category) ? prev : [...prev, updatedItem.category]);
+    }
+    
     refreshCurrentView();
   }, [refreshCurrentView]);
 
@@ -145,7 +171,6 @@ const useItems = () => {
     setCategories,
     itemMenuTitle,
     handleGetItems,
-    isLoading,
     addItemCache, updateItemCache, removeItemCache
   }
 }
@@ -187,7 +212,6 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
             case 'MenuEditor':
                 return(
                     <>
-                        {itemOperations.isLoading && <LoadingBlur loadingMessage="Loading item..."/>}
                         <div className="grid grid-cols-[10rem_1fr] gap-0 h-full">
                             <div className="bg-gray-900">
                             <CategorySidebar 
@@ -208,6 +232,8 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
                         </div>
                     </>
                 )
+                default:
+                  return;
         }
     }
     return (

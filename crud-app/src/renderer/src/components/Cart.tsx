@@ -52,8 +52,7 @@ export default function Cart({
     
     return (
         <>
-            
-            <div className="fixed p-4 h-screen flex flex-col overflow-hidden z-50 w-96">
+            <div className="fixed p-4 w-100 flex flex-col h-screen right-0">
                 <div className='flex-grow-[8] overflow-y-auto'>
                     <h3 className='mb-6 font-bold'>Your Cart</h3>
                     <div className='space-y-2'>
@@ -93,7 +92,7 @@ export default function Cart({
                         </div>
                     <button 
                         onClick={handleCheckout}
-                        className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-3 rounded-xl transition-colors mt-4 cursor-pointer'
+                        className='w-full bg-green-500 text-gray-900 hover:bg-green-400 font-bold py-4 rounded-xl transition-colors mt-4 cursor-pointer'
                     >Go To Checkout</button>
                 </div>
             </div>

@@ -38,7 +38,7 @@ export default function PaymentSummary({
   const totalItems = cartItems.reduce((sum, cart) => sum + cart.amount, 0);
 
   return (
-    <div className='bg-gray-900 text-white p-6 w-100 flex flex-col h-screen fixed right-0'>
+    <div className='bg-gray-900 fixed p-4 w-100 flex flex-col h-screen right-0 top-0'>
       <div className='mb-8'>
         <h3 className='text-2xl font-bold mb-2'>Payment Summary</h3>
         <p className='text-gray-400'>Review your order details</p>
@@ -90,7 +90,7 @@ export default function PaymentSummary({
       {/* Checkout Button */}
       <button
         onClick={() => onChangeSection('Payment')}
-        className='w-full bg-primary-500 hover:bg-primary-600 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer' 
+        className='w-full text-gray-900 bg-green-500 hover:bg-green-400 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2 cursor-pointer' 
         disabled={cartItems.length === 0}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

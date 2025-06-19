@@ -10,7 +10,7 @@ export default function HistoryItem({
 
     // item could be deleted by admin
     if(idAmountAndItemObject.itemDetails){
-        const totalPrice = (idAmountAndItemObject.itemDetails.price * idAmountAndItemObject.amount).toFixed(2)
+        const totalPrice = (idAmountAndItemObject.itemDetails.price - (idAmountAndItemObject.itemDetails.price * (idAmountAndItemObject.itemDetails.discount || 0) / 100) * idAmountAndItemObject.amount).toFixed(2)
         return (
             <div className='flex items-center gap-6 p-4 bg-accent-50 rounded-xl relative sm:gap-4'>
         

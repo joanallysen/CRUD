@@ -134,9 +134,19 @@ const useFavorites = () => {
 }
 
 const useItems = () => {
+  // the actual item that is gonna get displayed later
   const [items, setItems] = useState<Item[]>([])
+
+  // category title on sidebar
   const [categories, setCategories] = useState<string[]>([])
+
+  // special deal items
+  const [specialDeals, setSpecialDeals] = useState<Item[]>([]);
+
+  // the item title before the menu
   const [itemMenuTitle, setItemMenuTitle] = useState<string>('All Items')
+
+  // cache
   const categoryAndItem = useRef<Map<string, Item[]>>(new Map())
 
   const handleGetItems = useCallback(async (category: string, search: string) => {
@@ -158,7 +168,7 @@ const useItems = () => {
       return
     }
 
-    // Handle "all items" case
+    // Handle "all items" case, this is also executed on load
     if (category === '') {
       if (categoryAndItem.current.size === 0) {
         const allItems = await window.electron.ipcRenderer.invoke('get-item', '', '')
@@ -175,9 +185,24 @@ const useItems = () => {
         const allItems = Array.from(categoryAndItem.current.values()).flat()
         setItems(allItems)
       }
+
+      if(specialDeals.length === 0){
+        const specialDealItems : Item[] = await window.electron.ipcRenderer.invoke('get-special-deals');
+        setSpecialDeals(specialDealItems);
+      }
+
       setItemMenuTitle('All Items')
       return
     }
+
+    // Special deal category is a special case
+    if (category === 'Special deals'){
+      console.log('calleddd')
+      console.log('special deals: ', specialDeals);
+      setItems(specialDeals);
+      return;
+    }
+
 
     // Handle specific category
     if (categoryAndItem.current.has(category)) {
@@ -186,7 +211,7 @@ const useItems = () => {
       return
     }
 
-    // Fetch new category
+    // Fetch new category that was not on the cache
     const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
     categoryAndItem.current.set(category, fetchedItems)
     setItems(fetchedItems)
@@ -256,7 +281,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         return (
           <>
             {itemOperations.isLoading && <LoadingBlur loadingMessage='Loading menu...'/>}
-            <div className="grid grid-cols-[10rem_1fr_24rem] gap-0 h-full">
+            <div className="grid grid-cols-[10rem_1fr_25rem] gap-0 h-full">
               <div className="bg-gray-900">
                 <CategorySidebar 
                   onGetItem={itemOperations.handleGetItems}

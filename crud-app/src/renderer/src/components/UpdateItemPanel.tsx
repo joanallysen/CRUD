@@ -34,16 +34,17 @@ export default function UpdateItemPanel(
     const handleUpdateItem = () =>{
         const updatedItem : Item = {
             id: currentItem.id,
-            name: name,
-            description: description,
-            price: parseFloat(price),
+            name: name || '',
+            description: description || '',
+            price: parseFloat(price) || 0,
             img: imgData,
-            category: category,
-            discount: parseFloat(discount), 
-            available: available,
+            category: category || '',
+            discount: parseFloat(discount) || 0, 
+            available: available || false,
             popularity: currentItem.popularity,
             modifiedAt: new Date
         }
+        
         onUpdateItemCache(updatedItem)
         window.electron.ipcRenderer.invoke('update-item', updatedItem)
     }
@@ -87,7 +88,7 @@ export default function UpdateItemPanel(
 
     return(
         <div className="flex m-auto flex-col w-full p-6 relative">
-            <h2 className='p-6 font-bold text-center'>Add New Item</h2>
+            <h2 className='p-6 font-bold text-center'>Update {name}</h2>
 
         <label className="block text-white mb-2 text-left">Item image </label>
 
@@ -136,7 +137,7 @@ export default function UpdateItemPanel(
             <input className='w-6 h-6 border-2 border-white rounded-full checked:bg-green cursor-pointer transition-all' checked={available} onChange={(e) => setAvailable(e.target.checked)} type="checkbox" />
             </div>
             
-            <button className='button' onClick={handleUpdateItem}>Submit</button>
+            <button className='button' onClick={handleUpdateItem}>Update</button>
 
             
             

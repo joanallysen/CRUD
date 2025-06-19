@@ -19,8 +19,8 @@ export default function OrderSummary({
   onChangeSection: (section: CustomerSection) => void
 }): React.JSX.Element {
   return (
-    <div className="grid grid-cols-[3fr_1fr] gap-4 h-full">
-      <div className="flex flex-col p-6">
+    <>
+      <div className="flex flex-col p-6 gap-4 w-395">
         <h3 className="mb-2 font-bold">Order Summary</h3>
         {Array.from(cartMap.values()).map((cart, idx) => (
             <SummaryItem
@@ -32,8 +32,8 @@ export default function OrderSummary({
             />
 
         ))}
-      </div>
-      <PaymentSummary onChangeSection={onChangeSection} cartMap={cartMap}/>
     </div>
+      <PaymentSummary onChangeSection={onChangeSection} cartMap={cartMap}/>
+    </>
   )
 }
