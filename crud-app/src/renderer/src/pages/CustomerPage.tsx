@@ -171,7 +171,7 @@ const useItems = () => {
     // Handle "all items" case, this is also executed on load
     if (category === '') {
       if (categoryAndItem.current.size === 0) {
-        const allItems = await window.electron.ipcRenderer.invoke('get-item', '', '')
+        const allItems = await window.electron.ipcRenderer.invoke('get-available-item')
         
         // Cache items by category
         allItems.forEach((item) => {
@@ -189,6 +189,7 @@ const useItems = () => {
       if(specialDeals.length === 0){
         const specialDealItems : Item[] = await window.electron.ipcRenderer.invoke('get-special-deals');
         setSpecialDeals(specialDealItems);
+        console.log('special deals set', specialDeals);
       }
 
       setItemMenuTitle('All Items')
@@ -200,6 +201,7 @@ const useItems = () => {
       console.log('calleddd')
       console.log('special deals: ', specialDeals);
       setItems(specialDeals);
+      setItemMenuTitle('Special Deals');
       return;
     }
 
@@ -212,11 +214,11 @@ const useItems = () => {
     }
 
     // Fetch new category that was not on the cache
-    const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
-    categoryAndItem.current.set(category, fetchedItems)
-    setItems(fetchedItems)
-    setItemMenuTitle(category)
-  }, [])
+    // const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
+    // categoryAndItem.current.set(category, fetchedItems)
+    // setItems(fetchedItems)
+    // setItemMenuTitle(category)
+  }, [specialDeals])
 
   const isLoading = useMemo(() => categoryAndItem.current.size <= 0, [categoryAndItem.current.size])
 
@@ -286,6 +288,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
                 <CategorySidebar 
                   onGetItem={itemOperations.handleGetItems}
                   categories={itemOperations.categories}
+                  isAdmin={false}
                 />
               </div>
               <div className="p-6 overflow-y-auto bg-gray-960">

@@ -328,28 +328,6 @@ ipcMain.handle('get-admin', async(_, email: string) =>{
 
 let currentUser : any; // can be customer or admin
 
-// todo, haven't used yet
-ipcMain.handle('update-customer', async(_, keyAndValue:Record<string, any>) =>{
-  try{
-    await checkConnection();
-
-    console.log('The current user is:', currentUser);
-    console.log('Updating user.......')
-
-    await customerCollection?.updateOne(
-      {email: currentUser.email},
-      {
-        $set:keyAndValue
-      }
-    )
-    console.log('Customer data succesfully modified');
-    return {success: true};
-  } catch(error){
-    console.error('Error updating customer:', error);
-    return {success:false};
-  }
-})
-
 ipcMain.handle('save-customer-cart', async(_, cartItems: CartItem[]) =>{
   try{
     await checkConnection();
@@ -395,42 +373,36 @@ ipcMain.handle('add-item', async(_, item : Item) =>{
 } 
 ),
 
-ipcMain.handle('get-item', async(_, category:string = '', name:string = '') =>{
+ipcMain.handle('get-item', async(_) =>{
   try{
     await checkConnection();
 
-    if (category !== ''){
-      console.log('Getting items... index.ts');
-      const itemsRaw = await itemCollection?.find({category:category}).toArray() as Item[];
-      const items : Item[] = itemsRaw?.map((item) => ({
-        ...item,
-        id: item._id?.toHexString(),
-        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
-      }))
-      console.log('items received index.ts get-item');
-      return items || [];
-    }
+    const itemsRaw = await itemCollection?.find().toArray() as Item[];
+    const items : Item[] = itemsRaw?.map((item) => ({
+      ...item,
+      id: item._id?.toHexString(),
+      img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+    }))
+    console.log('items received index.ts get-item');
+    return items || [];
+  } catch (error){
+    console.log('error retrieving item', error);
+    return [];
+  }
+})
 
-    if(name !== ''){
-      console.log('Getting items by name');
-      const itemsRaw = await itemCollection?.find({name: {$regex:name, $options:'i'}}).toArray() as Item[];
-      const items : Item[] = itemsRaw?.map((item) => ({
-        ...item,
-        id: item._id?.toHexString(),
-        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
-      }))
-      console.log('items received index.ts get-item by name: ', items?.length);
-      return items || [];
-    }
+ipcMain.handle('get-available-item', async(_) =>{
+  try{
+    await checkConnection();
 
-      const itemsRaw = await itemCollection?.find().toArray() as Item[];
-      const items : Item[] = itemsRaw?.map((item) => ({
-        ...item,
-        id: item._id?.toHexString(),
-        img: {mime: item.img.mime, data: item.img.data.toString('base64')}
-      }))
-      console.log('items received index.ts get-item');
-      return items || [];
+    const itemsRaw = await itemCollection?.find({available : true}).toArray() as Item[];
+    const items : Item[] = itemsRaw?.map((item) => ({
+      ...item,
+      id: item._id?.toHexString(),
+      img: {mime: item.img.mime, data: item.img.data.toString('base64')}
+    }))
+    console.log('items received index.ts get-item');
+    return items || [];
   } catch (error){
     console.log('error retrieving item', error);
     return [];
@@ -447,6 +419,7 @@ ipcMain.handle('get-special-deals', async (_) => {
       id: item._id?.toHexString(),
       img: { mime: item.img.mime, data: item.img.data.toString('base64') }
     }));
+    console.log('test seeing if theree special deals items', items[0]);
     return items || [];
   } catch (error) {
     console.error('Error getting special deals:', error);
@@ -708,6 +681,7 @@ ipcMain.handle('is-item-favorited', async (_, itemId: string) => {
 const increasePopularity = async (itemId) => {
   try{
     await checkConnection();
+    console.log('the item id WOOOOOOOOOOOOO: ', itemId);
 
     itemCollection?.updateOne(
       { _id: ObjectId.createFromHexString(itemId) },
@@ -731,6 +705,7 @@ ipcMain.handle('add-order', async (_, orderData: { cartItems: CartItem[], paymen
     for (const cartItem of orderData.cartItems) {
       const item = await itemCollection?.findOne({ _id: ObjectId.createFromHexString(cartItem.itemId) });
       if (item) {
+        console.log("THE ITEMMM", item);
         total += ((item.price -  (item.price * (item.discount || 0) / 100)) * cartItem.amount);
         increasePopularity(item.id);
       }
@@ -841,3 +816,88 @@ ipcMain.handle('get-all-orders', async(_) =>{
     return {success: false, orders: []}
   }
 });
+
+import * as fastcsv from 'fast-csv';
+import path from 'path';
+
+ipcMain.handle('export-order-to-csv', async(_) => {
+  try {
+    console.log('Exporting orders to CSV');
+    await checkConnection();
+
+
+    const orders = await orderCollection
+      ?.find({}, { projection: { items: 0 } })
+      .sort({ date: -1 })
+      .toArray() as Order[];
+    
+    if (orders.length === 0) {
+      return { success: false, message: 'No orders found to export' };
+    }
+
+    // Generate unique filename with timestamp
+    const baseFileName = `orders-export-${new Date().toISOString().split('T')[0]}`;
+    let fileName = `${baseFileName}.csv`;
+    let filePath = path.join(app.getPath('downloads'), fileName);
+    
+    // Check if file exists and create unique name if needed
+    let counter = 1;
+    while (fs.existsSync(filePath)) {
+      fileName = `${baseFileName}-(${counter}).csv`;
+      filePath = path.join(app.getPath('downloads'), fileName);
+      counter++;
+    }
+
+    const ws = fs.createWriteStream(filePath);
+
+    await new Promise<void>((resolve, reject) => {
+      fastcsv
+        .write(orders, { headers: true })
+        .pipe(ws)
+        .on('finish', () => {
+          console.log('CSV file successfully written to:', filePath);
+          resolve();
+        })
+        .on('error', (err) => {
+          console.error('Error writing CSV:', err);
+          reject(err);
+        });
+    });
+
+    return { success: true, filePath, message: `Exported ${orders.length} orders` };
+  } catch(error : any) {
+    console.error('Error exporting orders to CSV:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('export-order-to-json', async(_) =>{
+  try{
+    console.log('Exporting orders to JSON');
+    await checkConnection();
+
+    const orders = await orderCollection?.find().sort({date:-1}).toArray() as Order[];
+
+    // Generate unique filename with timestamp
+    const baseFileName = `orders-export-${new Date().toISOString().split('T')[0]}`;
+    let fileName = `${baseFileName}.json`;
+    let filePath = path.join(app.getPath('downloads'), fileName);
+    
+    // Check if file exists and create unique name if needed
+    let counter = 1;
+    while (fs.existsSync(filePath)) {
+      fileName = `${baseFileName}-(${counter}).json`;
+      filePath = path.join(app.getPath('downloads'), fileName);
+      counter++;
+    }
+
+    const jsonData = JSON.stringify(orders, null, 2);
+    await fs.promises.writeFile(filePath, jsonData, 'utf8');
+    console.log('JSON file successfully written to:', filePath);
+
+    return { success: true, filePath, message: `Exported ${orders.length} orders` };
+  } catch(error : any) {
+    console.error('Error exporting orders to CSV:', error);
+    return { success: false, error: error.message };
+  }
+})

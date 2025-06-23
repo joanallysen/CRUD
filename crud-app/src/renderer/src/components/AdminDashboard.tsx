@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Order } from 'src/types/order';
+import Notification from './Notification';
 
 
 export default function AdminDashboard() : React.JSX.Element {
     const [orders, setOrders] = useState<Order[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [showNotification, setShowNotification] = useState<boolean>(false);
     useEffect(() => {
         loadOrder();
     }, []);
@@ -99,6 +100,16 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
         return matchesSearch && matchesStatus;
     });
 
+    const exportToCSV = () => {
+        setShowNotification(true);
+        window.electron.ipcRenderer.invoke('export-order-to-csv');
+    }
+
+    const exportToJSON = () =>{
+        setShowNotification(true);
+        window.electron.ipcRenderer.invoke('export-order-to-json');
+    }
+
     const formatDate = (date: Date) => {
         return new Intl.DateTimeFormat('en-NZ', {
             year: 'numeric',
@@ -124,7 +135,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-bold">Today's Sales</h3>
-                                <h2 className="font-bold">${todaySales}</h2>
+                                <h2 className="font-bold">${todaySales.toFixed(2)}</h2>
                                 {daySalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -144,7 +155,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="font-bold">This Week's Sales</h3>
-                                <h2 className="font-bold">${weekSales}</h2>
+                                <h2 className="font-bold">${weekSales.toFixed(2)}</h2>
                                 {weekSalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -164,7 +175,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className='font-bold'>This Month's Sales</h3>
-                                <h2 className='font-bold'>${monthSales}</h2>
+                                <h2 className='font-bold'>${monthSales.toFixed(2)}</h2>
                                 {monthSalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -203,7 +214,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                 <input
                                     type="text"
                                     placeholder="Search customers..."
-                                    className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+                                    className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg bg-gray-900"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -212,7 +223,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                             {/* Status Filter */}
                             <div className="relative flex items-center">
                                 <select
-                                    className="pr-8 py-2 pl-4 border border-gray-700 rounded-lg bg-gray-900 text-gray-100 focus:ring-2 focus:ring-blue-600 focus:border-transparent appearance-none"
+                                    className="pr-8 py-2 pl-4 border border-gray-700 rounded-lg bg-gray-900 hover:bg-gray-800 cursor-pointer appearance-none"
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                 >
@@ -226,6 +237,29 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                                         <path fill="currentColor" d="M11 20q-.425 0-.712-.288T10 19v-6L4.2 5.6q-.375-.5-.112-1.05T5 4h14q.65 0 .913.55T19.8 5.6L14 13v6q0 .425-.288.713T13 20z"/>
                                     </svg>
+                                </span>
+                            </div>
+
+                            {/* Export to CSV */}
+                            <div className='relative flex items-center'>
+                                <select
+                                    className="pr-5 py-2 pl-4 border border-gray-700 bg-gray-900 rounded-lg hover:bg-gray-800 cursor-pointer appearance-none"
+                                    onChange={(e) => {
+                                        if (e.target.value === 'csv') {
+                                            exportToCSV();
+                                        } else if (e.target.value === 'json') {
+                                            exportToJSON();
+                                        }
+                                        e.target.selectedIndex = 0;
+                                    }}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Export</option>
+                                    <option value="csv">Export to CSV</option>
+                                    <option value="json">Export to JSON</option>
+                                </select>
+                                <span className="absolute right-2 pointer-events-none flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="m5.05 22.375l-1.4-1.425L6.6 18H4.35v-2H10v5.65H8v-2.225zM12 22v-2h6V9h-5V4H6v10H4V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22z"/></svg>
                                 </span>
                             </div>
                         </div>
@@ -267,7 +301,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-100">
-                                            ${order.totalPrice}
+                                            ${order.totalPrice.toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-100">
                                             <span className={`inline-flex px-2 py-1 rounded ${
@@ -298,6 +332,8 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                             <p className="mt-1">Try adjusting your search or filter criteria.</p>
                         </div>
                     )}
+
+                    {showNotification && <Notification notificationMessage='Successfully exported!' onNotificationEnd={() => setShowNotification(false)}/>}
                 </div>
             </div>
         </div>

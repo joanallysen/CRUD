@@ -1,10 +1,11 @@
 import {useState} from "react";
 
 export default function CategorySidebar(
-    {onGetItem, categories}:
+    {onGetItem, categories, isAdmin}:
     {
         onGetItem:(category: string, search: string) => void;
         categories: string[];
+        isAdmin: boolean;
     }
 ) : React.JSX.Element{
     const [activeCategory, setActiveCategory] = useState<string>('') // Track active category
@@ -32,6 +33,7 @@ export default function CategorySidebar(
                     </button>
                 </li>
 
+                {!isAdmin && 
                 <li>
                     <button 
                         className={`cursor-pointer font-bold w-full flex items-center p-6 text-left transition ${
@@ -44,6 +46,8 @@ export default function CategorySidebar(
                         Special deals
                     </button>
                 </li>
+                }
+
                 {categories?.map((category, idx) =>{
                     return (
                         <li key={idx}>

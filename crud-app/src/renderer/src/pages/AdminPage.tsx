@@ -42,7 +42,7 @@ const useItems = () => {
     // Handle "all items" case
     if (category === '') {
       if (categoryAndItem.current.size === 0) {
-        const allItems = await window.electron.ipcRenderer.invoke('get-item', '', '')
+        const allItems = await window.electron.ipcRenderer.invoke('get-item')
         
         // Cache items by category
         allItems.forEach((item) => {
@@ -56,9 +56,11 @@ const useItems = () => {
         const allItems = Array.from(categoryAndItem.current.values()).flat()
         setItems(allItems)
       }
+
       setItemMenuTitle('All Items')
       return
     }
+
 
     // Handle specific category
     if (categoryAndItem.current.has(category)) {
@@ -67,11 +69,13 @@ const useItems = () => {
       return
     }
 
+    // temp to see if this still necessary?
     // Fetch new category if new category are made
-    const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
-    categoryAndItem.current.set(category, fetchedItems)
-    setItems(fetchedItems)
-    setItemMenuTitle(category)
+    // const fetchedItems = await window.electron.ipcRenderer.invoke('get-item', category, search)
+    // console.log('is this even ever called');
+    // categoryAndItem.current.set(category, fetchedItems)
+    // setItems(fetchedItems)
+    // setItemMenuTitle(category)
   }, [])
 
 
@@ -217,6 +221,7 @@ export default function AdminPage({onChangePage}: {onChangePage:(p: PageName) =>
                             <CategorySidebar 
                                 onGetItem={itemOperations.handleGetItems}
                                 categories={itemOperations.categories}
+                                isAdmin={true}
                             />
                             </div>
                             <div className="p-6 overflow-y-auto bg-gray-960">
