@@ -2,7 +2,7 @@ import {useCallback, useRef, useState} from 'react'
 import {Item} from '../../../types/item'
 import Notification from './Notification';
 
-export default function EditItemPanel(
+export default function AddItemPanel(
     {onClosePanel, onAddItemCache}:
     {
         onClosePanel: () => void;

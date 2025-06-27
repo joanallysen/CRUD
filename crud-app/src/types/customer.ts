@@ -1,5 +1,3 @@
-import {Item} from './item'
-import {Order} from './order'
 import {ObjectId} from 'mongodb'
 
 export interface Customer{

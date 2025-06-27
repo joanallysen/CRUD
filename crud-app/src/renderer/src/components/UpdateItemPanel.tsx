@@ -1,5 +1,5 @@
 import { Item } from 'src/types/item'
-import {useState, useCallback, useRef, useEffect} from 'react'
+import {useState, useCallback, useEffect} from 'react'
 import Notification from '../components/Notification'
 
 
@@ -24,7 +24,7 @@ export default function UpdateItemPanel(
     });
 
     const [showNotification, setShowNotification] = useState<boolean>(false);
-    const [notificationMessage, setNotificationMessage] = useState<string>('');
+    const [notificationMessage, setNotificationMessage] = useState<string>('Item successfully updated!');
 
     const deactivateNotification = useCallback(() =>{
         setNotificationMessage('');
@@ -46,6 +46,8 @@ export default function UpdateItemPanel(
         }
         
         onUpdateItemCache(updatedItem)
+        setShowNotification(true);
+        setNotificationMessage(`${name} has been updated!`)
         window.electron.ipcRenderer.invoke('update-item', updatedItem)
     }
 

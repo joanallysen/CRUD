@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { contextIsolated } from 'process'
+// import { contextIsolated } from 'process'
 
 import fs from 'fs'
 import {MongoClient, ObjectId, Db, Collection} from 'mongodb';
@@ -34,7 +34,7 @@ function createWindow(): void {
     type: 'question',
     buttons: ['Yes', 'No'],
     title: 'Confirm',
-    message: 'Are you sure you want to leave this haunted house?',
+    message: 'Are you sure you want to leave?',
     });
 
     if (choice === 1) {
@@ -95,17 +95,22 @@ app.on('window-all-closed', () => {
 // code. You can also put them in separate files and require them here.
 
 
-// PRIVATE KEY------------------------------------------------------------------------
-const privateKey = process.env.PRIVATE_KEY;
 
 // CONFIGURE ENVIRONMENT ------------------------------------------------------------
-dotenv.config();
+if (app.isPackaged) {
+  // Production: look next to the exe
+  const envPath = path.join(path.dirname(app.getPath('exe')), '.env');
+  dotenv.config({ path: envPath });
+} else {
+  // Development: use default behavior (looks in project root)
+  dotenv.config();
+}
 
 // MONGODB CONNECTION --------------------------------------------------------------------
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI || 'mongodb+srv://jschoolarc:myfirsteverdatabase12345@firstcluster.1hqjtpm.mongodb.net/';
 let dbClient: MongoClient | null = null;
 let db: Db | null = null;
-import { Document } from 'mongodb';
+
 let customerCollection: Collection<Customer> | null = null;
 let adminCollection: Collection<Admin> | null = null;
 let itemCollection: Collection<Item> | null = null;

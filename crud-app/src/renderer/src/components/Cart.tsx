@@ -1,5 +1,5 @@
 import {Item} from 'src/types/item';
-import {Customer, CartItem} from 'src/types/customer';
+import {CartItem} from 'src/types/customer';
 import CartItemUI from './CartItemUi';
 
 type CustomerSection = 'Ordering' | 'Summary' | 'Payment';

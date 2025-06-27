@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {Item} from '../../../types/item'
 
 export default function ItemMenu(
