@@ -326,7 +326,6 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
 
       case 'Payment':
         return <PaymentSection 
-          onChangeSection={handleChangeSection} 
           cartMap={cartOperations.cartMap}
           clearCart={cartOperations.clearCart}
         />
@@ -343,7 +342,7 @@ export default function CustomerPage({ onChangePage }: { onChangePage: (p: PageN
         )
 
       case 'History':
-        return <CustomerHistory onChangeSection={handleChangeSection} onAddToCart={cartOperations.addToCart} />
+        return <CustomerHistory onAddToCart={cartOperations.addToCart} />
 
       default:
         return null

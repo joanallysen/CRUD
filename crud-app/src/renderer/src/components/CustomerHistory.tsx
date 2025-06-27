@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Order, OrderWithItemsObject, idAmountAndItemObject } from 'src/types/order'
+import { OrderWithItemsObject } from 'src/types/order'
 import { Item } from 'src/types/item'
 import LoadingBlur from './LoadingBlur';
 import HistoryItem from './HistoryItem';
 import Notification from './Notification';
 
-type CustomerSection = 'Ordering' | 'Summary' | 'Payment' | 'Favorite' | 'History'
-
 export default function CustomerHistory(
-  { onChangeSection, onAddToCart }: {
-    onChangeSection: (section: CustomerSection) => void;
+  { onAddToCart }: {
     onAddToCart: (item: Item) => void;
   }
 ): React.JSX.Element {

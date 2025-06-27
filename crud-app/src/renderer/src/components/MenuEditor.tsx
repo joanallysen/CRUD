@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {Item} from '../../../types/item'
 import SearchBar from './SearchBar';
 import AddItemPanel from './AddItemPanel';

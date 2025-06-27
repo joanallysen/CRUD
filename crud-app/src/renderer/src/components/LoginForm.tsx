@@ -26,6 +26,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
 
   const isValid = async() => {
     const newErrors : {email:string, password:string} = {email:'', password:''};
+    console.log('formData.email:', formData.email);
 
     // Email validation
     if (!formData.email) {
@@ -42,16 +43,16 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
     }
 
     setErrors(newErrors);
-    console.log(!(Object.keys(newErrors).length === 0));
-    return !(Object.keys(newErrors).length === 0);
+    console.log('Isvalid value: ', Object.values(newErrors).some(msg => msg === ''))
+    return Object.values(newErrors).every(msg => msg === '');
   };
 
   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     
-    if (await isValid()) {
-      console.log("it's not valid")
-      // return; TODO
+    if (!(await isValid())) {
+      console.log("it's not valid, isValid returned true");
+      return;
     }
 
     const result = await window.electron.ipcRenderer.invoke('verify-account', formData.email, formData.password);

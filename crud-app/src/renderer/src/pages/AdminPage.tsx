@@ -1,10 +1,8 @@
-import {useState, useRef, useEffect, useCallback, useMemo} from "react"
+import {useState, useRef, useEffect, useCallback} from "react"
 import { Item } from "src/types/item";
 import AdminSidebar from '@renderer/components/AdminSidebar'
 import MenuEditor from '@renderer/components/MenuEditor'
-import LoadingBlur from "@renderer/components/LoadingBlur";
 import CategorySidebar from "@renderer/components/CategorySidebar";
-import SearchBar from "@renderer/components/SearchBar";
 import AdminDashboard from "@renderer/components/AdminDashboard";
 
 const useItems = () => {
@@ -120,30 +118,26 @@ const useItems = () => {
 
   // update an item in the cache
   const updateItemCache = useCallback((updatedItem: Item) => {
-    // find and remove from old category first
-    let oldCategory: string | undefined;
     for (const [category, items] of categoryAndItem.current.entries()) {
       const index = items.findIndex(item => item.id === updatedItem.id);
-      if (index !== -1) {
-        oldCategory = category;
-        if (category === updatedItem.category) {
-          // Same category, just update
-          const newItems = [...items];
-          newItems[index] = updatedItem;
-          categoryAndItem.current.set(category, newItems);
-          refreshCurrentView();
-          return;
+      if (index === -1) continue;
+
+      if (category === updatedItem.category) {
+        // Same category, just update
+        const newItems = [...items];
+        newItems[index] = updatedItem;
+        categoryAndItem.current.set(category, newItems);
+        refreshCurrentView();
+        return;
+      } else {
+        const newItems = items.filter(item => item.id !== updatedItem.id);
+        if (newItems.length === 0) {
+          categoryAndItem.current.delete(category);
+          setCategories(prev => prev.filter(cat => cat !== category));
         } else {
-          // different category, remove from old
-          const newItems = items.filter(item => item.id !== updatedItem.id);
-          if (newItems.length === 0) {
-            categoryAndItem.current.delete(category);
-            setCategories(prev => prev.filter(cat => cat !== category));
-          } else {
-            categoryAndItem.current.set(category, newItems);
-          }
-          break;
+          categoryAndItem.current.set(category, newItems);
         }
+        break;
       }
     }
   

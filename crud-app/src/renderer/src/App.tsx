@@ -1,9 +1,5 @@
 import {useState} from 'react'
 
-import {Customer} from '../../types/customer';
-import {Admin} from '../../types/admin';
-import {Item} from '../../types/item';
-
 import CustomerPage from './pages/CustomerPage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
