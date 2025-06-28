@@ -41,7 +41,7 @@ export default function ItemMenu(
             <div
                 className={`scrollbar-custom grid gap-5 overflow-y-auto w-full}`}
                 style={{
-                    gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 320px))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 18rem))",
                 }}
             >
         
