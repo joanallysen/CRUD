@@ -40,7 +40,7 @@ export default function PaymentSummary({
   return (
     <div className='bg-gray-900 fixed p-4 w-100 flex flex-col h-screen right-0 top-0'>
       <div className='mb-8'>
-        <h3 className='text-2xl font-bold mb-2'>Payment Summary</h3>
+        <h3 className='mb-2'>Payment Summary</h3>
         <p className='text-gray-400'>Review your order details</p>
       </div>
 
@@ -49,19 +49,19 @@ export default function PaymentSummary({
         <div className='space-y-4'>
           <div className='flex justify-between items-center py-2'>
             <span className='text-gray-300'>Sub Total</span>
-            <span className='font-semibold'>${subTotal}</span>
+            <span className=''>${subTotal}</span>
           </div>
           
           <div className='flex justify-between items-center py-2'>
             <span className='text-gray-300'>GST</span>
-            <span className='font-semibold'>${tax}</span>
+            <span className=''>${tax}</span>
           </div>
           
           <hr className='border-gray-700 my-4' />
           
           <div className='flex justify-between items-center py-2 mb-6'>
-            <span className='text-lg font-bold'>Total</span>
-            <span className='text-2xl font-bold text-primary-400'>${total}</span>
+            <span className='text-lg '>Total</span>
+            <span className='text-primary-400'>${total}</span>
           </div>
         </div>
 
@@ -69,7 +69,7 @@ export default function PaymentSummary({
         <div className='bg-gray-800 rounded-lg p-4 mb-6'>
           <div className='flex items-center justify-between'>
             <span className='text-gray-300'>Items in cart</span>
-            <span className='font-semibold'>{totalItems}</span>
+            <span className=''>{totalItems}</span>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function PaymentSummary({
       {/* Back Button */}
       <button
         onClick={() => onChangeSection('Ordering')}
-        className='w-full bg-gray-800 hover:bg-gray-700 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer mb-5' 
+        className='w-full bg-gray-800 hover:bg-gray-700 py-4 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer mb-5' 
         disabled={cartItems.length === 0}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -90,7 +90,7 @@ export default function PaymentSummary({
       {/* Checkout Button */}
       <button
         onClick={() => onChangeSection('Payment')}
-        className='w-full text-gray-900 bg-green-500 hover:bg-green-400 font-bold py-4 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2 cursor-pointer' 
+        className='w-full text-gray-900 bg-green-500 hover:bg-green-400 py-4 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2 cursor-pointer' 
         disabled={cartItems.length === 0}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

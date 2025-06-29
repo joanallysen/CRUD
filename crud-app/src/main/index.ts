@@ -107,7 +107,7 @@ if (app.isPackaged) {
 }
 
 // MONGODB CONNECTION --------------------------------------------------------------------
-const uri = process.env.MONGODB_URI || 'mongodb+srv://jschoolarc:myfirsteverdatabase12345@firstcluster.1hqjtpm.mongodb.net/';
+const uri = process.env.MONGODB_URI;
 let dbClient: MongoClient | null = null;
 let db: Db | null = null;
 
@@ -809,7 +809,7 @@ ipcMain.handle('get-customer-orders', async (_) => {
   }
 });
 
-
+// TODO add loading screen when getting all order
 ipcMain.handle('get-all-orders', async(_) =>{
   try{
       console.log('getting all order get-all-orders')

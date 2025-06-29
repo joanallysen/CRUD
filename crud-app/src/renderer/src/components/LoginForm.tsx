@@ -86,7 +86,7 @@ export default function LoginForm({onChangePage} : {onChangePage: (p: PageName) 
       <div className="w-full max-w-sm mx-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="font-light mb-2">Login</h1>
+          <h1 className="mb-2">Login</h1>
         </div>
 
         {/* Login Message */}

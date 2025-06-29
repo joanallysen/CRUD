@@ -80,9 +80,9 @@ export default function AddItemPanel(
 
     return(
         <div className="flex m-auto flex-col w-full p-6 relative">
-        <h2 className='p-6 font-bold text-center'>Add New Item</h2>
+        <h2 className='p-6 text-center'>Add New Item</h2>
 
-        <label className="block text-white mb-2 text-left">Item image </label>
+        <label className="block  mb-2 text-left">Item image </label>
 
 
         {imgSrc !== '' ? (
@@ -112,22 +112,22 @@ export default function AddItemPanel(
             </button>
         }
 
-            <label className="block text-white mb-2 text-left">Name </label>
+            <label className="block  mb-2 text-left">Name </label>
             <input  name="name" type="text" placeholder="Name" className={`input`} ref={nameRef}/>
-            <label className="block text-white mb-2 text-left">Description </label>
+            <label className="block  mb-2 text-left">Description </label>
             <input  name="name" type="text" placeholder="Description" className={`input`} ref={descRef}/>
-            <label className="block text-white mb-2 text-left">Price </label>
+            <label className="block  mb-2 text-left">Price </label>
             <input  name="category" type="number" placeholder="5" className={`input`} ref={priceRef}/>
 
-            <label className="block text-white mb-2 text-left"> Category </label>
+            <label className="block  mb-2 text-left"> Category </label>
             <input  name="name" type="text" placeholder="Food" className={`input`} ref={categoryRef}/>
 
-            <label className="block text-white mb-2 text-left">Discount </label>
+            <label className="block  mb-2 text-left">Discount </label>
             <input name="name" type="number" placeholder="%" className={'input mb-8'} ref={discountRef}/>
 
             <div className="flex items-center mb-8 justify-between">
                 
-                <label  className="text-white select-none cursor-pointer">
+                <label  className=" select-none cursor-pointer">
                     Available
                 </label>
 

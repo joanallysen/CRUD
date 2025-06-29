@@ -1,18 +1,15 @@
-@import './base.css';
 @import "tailwindcss";
 
 
 html, body{
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-}
-
-body{
   min-height: 100vh;
   color: white;
+  margin: 0;
+  padding: 0;
   background-color: #11111b;
 }
+
+
 
 @theme {
   --animate-fade-in-up: fade-in-up 1s ease-in-out;
@@ -35,12 +32,12 @@ body{
   --color-accent-950: #eceafa;
 }
 
-h1 { font-size: 2.5rem; }  /* 40px */
-h2 { font-size: 2rem; }    /* 32px */
-h3 { font-size: 1.75rem; } /* 28px */
-h4 { font-size: 1.5rem; }  /* 24px */
-h5 { font-size: 1.25rem; } /* 20px */
-p, button { font-size: 1rem; } /* 16px */
+h1 { font-weight: 700; font-size: 2.5rem; }  /* 40px */
+h2 { font-weight: 700; font-size: 2rem; }    /* 32px */
+h3 { font-weight: 700; font-size: 1.75rem; } /* 28px */
+h4 { font-weight: 700; font-size: 1.5rem; }  /* 24px */
+h5 { font-weight: 700; font-size: 1.25rem; } /* 20px */
+p, button { font-weight: 400 ; font-size: 1rem; } /* 16px */
 
 
 /* Modern Custom Scrollbar Styles */
@@ -98,11 +95,11 @@ p, button { font-size: 1rem; } /* 16px */
 
 @layer components{
   .input {
-    @apply w-full px-4 py-3 mb-4 bg-transparent border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white transition-colors;
+    @apply w-full px-4 py-3 mb-4 bg-transparent border rounded-lg  placeholder-gray-400 focus:outline-none focus:border-white transition-colors;
   }
 
   .button {
-    @apply bg-white w-50 rounded-full px-6 py-3 text-black transition-all duration-150 ease-in-out cursor-pointer hover:w-70 block mx-auto;
+    @apply bg-white w-50 rounded-full px-6 py-3 text-gray-800 transition-all duration-150 ease-in-out cursor-pointer hover:w-70 block mx-auto;
   }
 }
 

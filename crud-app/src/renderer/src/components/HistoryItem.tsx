@@ -25,9 +25,9 @@ export default function HistoryItem({
         
               {/* Item Details */}
               <div className='flex-1 min-w-0'>
-                <p className='font-bold text-white mb-1 truncate'>{idAmountAndItemObject.itemDetails.name}</p>
-                <p className='text-white mb-2'>${idAmountAndItemObject.itemDetails.price - idAmountAndItemObject.itemDetails.price * (idAmountAndItemObject.itemDetails.discount / 100)} each</p>
-                <p className='font-semibold text-gray-400'>Total: ${totalPrice}</p>
+                <p className='mb-1 truncate'>{idAmountAndItemObject.itemDetails.name}</p>
+                <p className='mb-2'>${idAmountAndItemObject.itemDetails.price - idAmountAndItemObject.itemDetails.price * (idAmountAndItemObject.itemDetails.discount / 100)} each</p>
+                <p className=' text-gray-400'>Total: ${totalPrice}</p>
               </div>
         
             </div>
@@ -35,7 +35,7 @@ export default function HistoryItem({
     } else{
         return(
             <div className='flex items-center align-center p-4 bg-accent-50 rounded-xl'>
-                <p className='font-bold'>Item removed from menu or not found</p>
+                <p className=''>Item removed from menu or not found</p>
             </div>
         )
     }

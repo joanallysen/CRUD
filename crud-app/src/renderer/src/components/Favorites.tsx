@@ -30,7 +30,7 @@ export default function Favorites(
   return (
     <div className="p-6 overflow-y-auto bg-gray-950 h-screen">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-2 pl-6">My Favorites</h2>
+        <h1 className="mb-2 pl-6">My Favorites</h1>
         <p className="text-gray-400 pl-6">Items you've saved for later</p>
       </div>
       
@@ -39,7 +39,7 @@ export default function Favorites(
           <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" className="mb-4">
             <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
-          <h3 className="text-lg font-medium mb-2">No favorites yet</h3>
+          <h3 className="mb-2">No favorites yet</h3>
           <p className="text-center">Start adding items to your favorites!</p>
         </div>
       ) : (
@@ -55,23 +55,23 @@ export default function Favorites(
               </div>
               
               <div className='p-6'>
-                <p className='font-bold text-white'>{item.name}</p>
+                <p>{item.name}</p>
                 <p className='text-gray-500 mb-4'>{item.description}</p>
 
                 <div className='flex items-center justify-between'>
                   <div className='flex gap-3 items-center'>
                     {item.discount > 0 ? (
                       <>
-                        <h3 className="line-through text-lg text-white">${item.price}</h3>    
-                        <h3 className="text-red-600 font-bold">${(item.price * (1 - item.discount/100)).toFixed(2)}</h3>
+                        <h3 className="line-through text-lg ">${item.price}</h3>    
+                        <h3 className="text-red-600 ">${(item.price * (1 - item.discount/100)).toFixed(2)}</h3>
                       </>   
                     ) : (
-                      <h3 className="text-lg font-bold text-white">${item.price}</h3>
+                      <h3 className="text-lg ">${item.price}</h3>
                     )}
                   </div>
                   
                   <button 
-                    className="bg-accent-500 hover:bg-accent-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors cursor-pointer text-white" 
+                    className="bg-accent-500 hover:bg-accent-600 rounded-full w-10 h-10 flex items-center justify-center transition-colors cursor-pointer " 
                     onClick={() => handleAddToCart(item)}
                     title="Add to cart"
                   >

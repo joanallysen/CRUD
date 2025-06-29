@@ -126,7 +126,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
     return (
         <div className="min-h-screen bg-gray-850 p-6">
             <div className="max-w-6xl mx-auto">
-                <h1 className="font-bold mb-6">Sales Dashboard</h1>
+                <h1 className="mb-6">Sales Dashboard</h1>
                 
                 {/* Top Row - Sales Metrics (3 columns) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -134,8 +134,8 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                     <div className="bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-blue-600">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold">Today's Sales</h3>
-                                <h2 className="font-bold">${todaySales.toFixed(2)}</h2>
+                                <h3>Today's Sales</h3>
+                                <h2>${todaySales.toFixed(2)}</h2>
                                 {daySalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -154,8 +154,8 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                     <div className="bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-green-600">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="font-bold">This Week's Sales</h3>
-                                <h2 className="font-bold">${weekSales.toFixed(2)}</h2>
+                                <h3>This Week's Sales</h3>
+                                <h2>${weekSales.toFixed(2)}</h2>
                                 {weekSalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -174,8 +174,8 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                     <div className="bg-gray-800 rounded-lg shadow-md p-6 border-l-4 border-purple-600">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className='font-bold'>This Month's Sales</h3>
-                                <h2 className='font-bold'>${monthSales.toFixed(2)}</h2>
+                                <h3>This Month's Sales</h3>
+                                <h2>${monthSales.toFixed(2)}</h2>
                                 {monthSalesChanges > 0 ? 
                                     <p className="text-green-400 flex items-center mt-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M3.4 18L2 16.6l7.4-7.45l4 4L18.6 8H16V6h6v6h-2V9.4L13.4 16l-4-4z"/></svg>
@@ -194,7 +194,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                 {/* Bottom Row - Customer Data (1 column, full width) */}
                 <div>
                     <div className="flex flex-row items-center justify-between gap-4">
-                        <h1 className="font-bold mb-6">Customer Management</h1>
+                        <h1 className="mb-6">Customer Management</h1>
                         
                         <div className="flex flex-col sm:flex-row gap-3">
                             {/* Search */}
@@ -288,7 +288,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex px-3 py-1 font-semibold rounded-full ${
+                                            <span className={`inline-flex px-3 py-1  rounded-full ${
                                                 order.orderStatus === 'Complete' 
                                                     ? 'bg-green-900 text-green-300'
                                                     : order.orderStatus === 'Processing'
@@ -300,10 +300,10 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                                 {order.orderStatus}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             ${order.totalPrice.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex px-2 py-1 rounded ${
                                                 order.paymentMethod === 'Card' 
                                                     ? 'bg-blue-900 text-blue-300'
@@ -317,7 +317,7 @@ lastMonthEnd	Last day of the previous month	May 31, 2025, 00:00:00*/
                                         <td className="px-6 py-4 whitespace-nowrap text-gray-400">
                                             {order.date ? formatDate(order.date) : 'No orders'}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-gray-100">
+                                        <td className="px-6 py-4 whitespace-nowrap ">
                                             {order.items.length}
                                         </td>
                                     </tr>
