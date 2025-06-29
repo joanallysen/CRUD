@@ -37,9 +37,9 @@ export default function SummaryItem({
 
       {/* Item Details */}
       <div className='flex-1 min-w-0'>
-        <p className='font-bold text-white mb-1 truncate'>{cart.item.name}</p>
-        <p className='text-white mb-2'>${cart.item.price - cart.item.price * ((cart.item.discount || 0)/100)} each</p>
-        <p className='font-semibold text-gray-400'>Total: ${totalPrice}</p>
+        <p className=' mb-1 truncate'>{cart.item.name}</p>
+        <p className=' mb-2'>${cart.item.price - cart.item.price * ((cart.item.discount || 0)/100)} each</p>
+        <p className=' text-gray-400'>Total: ${totalPrice}</p>
       </div>
 
       {/* Quantity Controls */}
@@ -53,7 +53,7 @@ export default function SummaryItem({
           </svg>
         </button>
         
-        <span className='font-semibold text-white-900 min-w-[2rem] text-center'>{cart.amount}</span>
+        <span className=' -900 min-w-[2rem] text-center'>{cart.amount}</span>
         
         <button 
           onClick={() => onIncrease(cart.item.id!)}

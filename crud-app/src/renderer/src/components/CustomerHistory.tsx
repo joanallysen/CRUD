@@ -73,7 +73,7 @@ export default function CustomerHistory(
       {loading && <LoadingBlur loadingMessage='Loading history...'/>}
       {notification && <Notification notificationMessage={'Successfully Reordered!'} onNotificationEnd={() => setNotification(false)} />}
       <div className="max-w-6xl mx-auto">
-          <h1 className="font-bold mb-6">Order History</h1>
+          <h1 className="mb-6">Order History</h1>
         
         {orders.length === 0 ? (
             <p className="text-gray-300 text-lg">No orders found</p>
@@ -129,7 +129,7 @@ export default function CustomerHistory(
                       <tr key={`${order.id}-expanded`}>
                         <td colSpan={5} className="bg-gray-750 border-b border-gray-700 p-6">
                           <div className="space-y-4">
-                            <h4 className="font-semibold mb-4">Order Items:</h4>
+                            <h4 className="mb-4">Order Items:</h4>
                             {order.items.map((item, idx) => (
                               <HistoryItem 
                                 key={idx}

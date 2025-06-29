@@ -809,7 +809,7 @@ ipcMain.handle('get-customer-orders', async (_) => {
   }
 });
 
-
+// TODO add loading screen when getting all order
 ipcMain.handle('get-all-orders', async(_) =>{
   try{
       console.log('getting all order get-all-orders')

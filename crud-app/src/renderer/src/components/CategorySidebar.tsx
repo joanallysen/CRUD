@@ -18,11 +18,11 @@ export default function CategorySidebar(
     return(
         <>
         <div className="h-full fixed w-40">
-            <h3 className="font-bold pl-6 pt-6 mb-6">Order</h3>
+            <h3 className="pl-6 pt-6 mb-6">Order</h3>
             <ul className="list-none p-0 m-0">
                 <li>
                     <button 
-                        className={`cursor-pointer font-bold w-full flex items-center p-6 text-left transition ${
+                        className={`cursor-pointer w-full flex items-center p-6 text-left transition ${
                             activeCategory === '' 
                                 ? 'bg-accent-300' 
                                 : 'hover:bg-accent-300'
@@ -36,7 +36,7 @@ export default function CategorySidebar(
                 {!isAdmin && 
                 <li>
                     <button 
-                        className={`cursor-pointer font-bold w-full flex items-center p-6 text-left transition ${
+                        className={`cursor-pointer w-full flex items-center p-6 text-left transition ${
                             activeCategory === "Special deals" 
                                 ? 'bg-accent-300' 
                                 : 'hover:bg-accent-300'
@@ -52,7 +52,7 @@ export default function CategorySidebar(
                     return (
                         <li key={idx}>
                             <button 
-                                className={`cursor-pointer font-bold w-full flex items-center p-6 text-left transition ${
+                                className={`cursor-pointer w-full flex items-center p-6 text-left transition ${
                                     activeCategory === category 
                                         ? 'bg-accent-300' 
                                         : 'hover:bg-accent-300'

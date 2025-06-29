@@ -64,7 +64,7 @@ export default function MenuEditor(
             <div className={`${editPanelOpen || addPanelOpen ? 'w-[75%]' : 'w-[90%]'}  `}>
                 <SearchBar onGetItems={onGetItems}></SearchBar>
             </div>
-            <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
+            <h3 className='mb-10 '>{itemMenuTitle}</h3> 
             <div
                 className={`scrollbar-custom grid gap-5 overflow-y-auto ${editPanelOpen || addPanelOpen ? 'w-[80%]' : 'w-full'}`}
                 style={{
@@ -85,7 +85,7 @@ export default function MenuEditor(
                             <circle cx="12" cy="12" r="12" fill="none"/>
                             <path d="M12 7v10M7 12h10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                         </svg>
-                    <span className="mt-4 font-semibold text-lg">Add New Item</span>
+                    <span className="mt-4  text-lg">Add New Item</span>
                 </button>
             </div>
 
@@ -97,7 +97,7 @@ export default function MenuEditor(
                             <div className="absolute top-3 right-3 z-10 group">
                                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#fde047"/><path d="M12 7v5" stroke="#b91c1c" strokeWidth="2.5" strokeLinecap="round"/><circle cx="12" cy="16" r="1.5" fill="#b91c1c"/>
                                 </svg>
-                                <span className="absolute w-auto p-2 min-w-max -left-24 top-1/2 -translate-y-1/2 rounded-md shadow-md text-white bg-gray-900 text-sm font-medium transition-all duration-200 scale-0 origin-right group-hover:scale-100 z-[999] border border-gray-700">
+                                <span className="absolute w-auto p-2 min-w-max -left-24 top-1/2 -translate-y-1/2 rounded-md shadow-md  bg-gray-900 text-sm medium transition-all duration-200 scale-0 origin-right group-hover:scale-100 z-[999] border border-gray-700">
                                     Unavailable
                                 </span>
                             </div>
@@ -110,7 +110,7 @@ export default function MenuEditor(
                             />
                         </div>
                         <div className='p-6'>
-                            <p className='font-bold'>{item.name}</p>
+                            <p className=''>{item.name}</p>
                             <p className='text-gray-400'>{item.description}</p>
                             <p className='px-3 py-1 rounded-full bg-gray-700 w-fit'>Popularity : {item.popularity}</p>
 

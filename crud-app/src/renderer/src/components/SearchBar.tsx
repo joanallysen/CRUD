@@ -24,7 +24,7 @@ export default function SearchBar({onGetItems}: {onGetItems: (category: string, 
                 name="search"
                 placeholder="Search..."
                 ref={searchRef}
-                className="flex-grow px-3 py-3 focus:outline-none text-white bg-transparent"
+                className="flex-grow px-3 py-3 focus:outline-none  bg-transparent"
                 onKeyDown={handleKeyDown}
             />
             </div>
