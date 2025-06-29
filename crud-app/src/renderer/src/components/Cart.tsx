@@ -54,7 +54,7 @@ export default function Cart({
         <>
             <div className="fixed p-4 w-100 flex flex-col h-screen right-0">
                 <div className='flex-grow-[8] overflow-y-auto'>
-                    <h3 className='mb-6 font-bold'>Your Cart</h3>
+                    <h3 className='mb-6'>Your Cart</h3>
                     <div className='space-y-2'>
                         {(cartMap.size <= 0) && <p className='text-gray-400 text-center p-6'>Click + icon on one of the item to start placing items!</p> }
                         {Array.from(cartMap.values()).map((cart, idx) =>{
@@ -76,23 +76,23 @@ export default function Cart({
                 <div className='space-y-4'>
                         <div className='flex justify-between items-center py-2'>
                             <span className='text-gray-300'>Sub Total</span>
-                            <span className='font-semibold'>${subTotal}</span>
+                            <span>${subTotal}</span>
                         </div>
 
                         <div className='flex justify-between items-center py-2'>
                             <span className='text-gray-300'>GST</span>
-                            <span className='font-semibold'>${tax}</span>
+                            <span>${tax}</span>
                         </div>
                         
                         <hr className='border-gray-700 my-4' />
                         
                         <div className='flex justify-between items-center py-2'>
-                            <span className='text-lg font-bold'>Total</span>
-                            <span className='text-2xl font-bold text-primary-400'>${priceAfterTax}</span>
+                            <h4>Total</h4>
+                            <h4>${priceAfterTax}</h4>
                         </div>
                     <button 
                         onClick={handleCheckout}
-                        className='w-full bg-green-500 text-gray-900 hover:bg-green-400 font-bold py-4 rounded-xl transition-colors mt-4 cursor-pointer'
+                        className='w-full bg-green-500 text-gray-900 hover:bg-green-400 py-4 rounded-xl transition-colors mt-4 cursor-pointer'
                     >Go To Checkout</button>
                 </div>
             </div>

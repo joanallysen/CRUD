@@ -90,9 +90,9 @@ export default function UpdateItemPanel(
 
     return(
         <div className="flex m-auto flex-col w-full p-6 relative">
-            <h2 className='p-6 font-bold text-center'>Update {name}</h2>
+            <h2 className='p-6 text-center'>Update {name}</h2>
 
-        <label className="block text-white mb-2 text-left">Item image </label>
+        <label className="block  mb-2 text-left">Item image </label>
 
 
         {imgSrc !== '' ? (
@@ -123,19 +123,19 @@ export default function UpdateItemPanel(
         }
 
             {/* Todo form required is pretty nmuch useless */}
-            <label className="block text-white mb-2 text-left">Name </label>
+            <label className="block  mb-2 text-left">Name </label>
             <input className='input' value={name} onChange={(e) => setName(e.target.value)} />
-            <label className="block text-white mb-2 text-left">Description </label>
+            <label className="block  mb-2 text-left">Description </label>
             <input className='input' value={description} onChange={(e) => setDescription(e.target.value)} />
-            <label className="block text-white mb-2 text-left">Price </label>
+            <label className="block  mb-2 text-left">Price </label>
             <input className='input' value={price} onChange={(e) => setPrice(e.target.value)} />
-            <label className="block text-white mb-2 text-left">Category </label>
+            <label className="block  mb-2 text-left">Category </label>
             <input className='input' value={category} onChange={(e) => setCategory(e.target.value)} />
-            <label className="block text-white mb-2 text-left">Discount </label>
+            <label className="block  mb-2 text-left">Discount </label>
             <input className='input' value={discount} onChange={(e) => setDiscount(e.target.value)} />
 
             <div className="flex items-center mb-8 justify-between">
-                <label className="block text-white mb-2 text-left">Availability </label>
+                <label className="block  mb-2 text-left">Availability </label>
             <input className='w-6 h-6 border-2 border-white rounded-full checked:bg-green cursor-pointer transition-all' checked={available} onChange={(e) => setAvailable(e.target.checked)} type="checkbox" />
             </div>
             

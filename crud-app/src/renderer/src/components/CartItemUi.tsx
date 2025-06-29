@@ -37,8 +37,8 @@ export default function CartItemUI({
       <div className='flex-col flex'>
         {/* Item Details */}
         <div className='flex-1 w-full'>
-          <p className='font-bold mb-1'>{cart.item.name}</p>
-          <p className='text-white mb-2'>${cart.item.price - (cart.item.price * (cart.item.discount || 0) / 100) } each</p>
+          <p className='mb-1'>{cart.item.name}</p>
+          <p className=' mb-2'>${cart.item.price - (cart.item.price * (cart.item.discount || 0) / 100) } each</p>
         </div>
 
         {/* Quantity Controls */}
@@ -52,7 +52,7 @@ export default function CartItemUI({
             </svg>
           </button>
           
-          <span className='font-semibold text-white-900 min-w-[2rem] text-center'>{cart.amount}</span>
+          <span className=' -900 min-w-[2rem] text-center'>{cart.amount}</span>
           
           <button 
             onClick={() => onIncrease(cart.item.id!)}

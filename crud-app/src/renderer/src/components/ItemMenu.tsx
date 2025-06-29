@@ -37,11 +37,11 @@ export default function ItemMenu(
         <>
             
             {/* Make sure item is loaded first */}
-            <h3 className='mb-10 font-bold'>{itemMenuTitle}</h3> 
+            <h3 className='mb-10 '>{itemMenuTitle}</h3> 
             <div
                 className={`scrollbar-custom grid gap-5 overflow-y-auto w-full}`}
                 style={{
-                    gridTemplateColumns: "repeat(auto-fit, minmax(20rem, 320px))",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(14rem, 18rem))",
                 }}
             >
         
@@ -57,7 +57,7 @@ export default function ItemMenu(
                             />
                         </div>
                         <div className='p-6'>
-                            <p className='font-bold'>{item.name}</p>
+                            <p className=''>{item.name}</p>
                             <p className='text-gray-400'>{item.description}</p>
 
                             <span className='flex gap-3'>
